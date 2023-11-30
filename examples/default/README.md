@@ -46,7 +46,6 @@ module "containerregistry" {
   source = "../../"
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
-  location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
 }
 ```
