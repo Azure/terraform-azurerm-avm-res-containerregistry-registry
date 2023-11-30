@@ -1,12 +1,13 @@
-data "azurerm_resource_group" "rg" {
-  name = var.resource_group_name
+data "azurerm_resource_group" "parent" {
+  count = var.location == null ? 1 : 0
+  name  = var.resource_group_name
 }
 
 resource "azurerm_container_registry" "this" {
   name                          = var.name
   resource_group_name           = var.resource_group_name
+  location                      = coalesce(var.location, data.azurerm_resource_group.parent[0].location)
   sku                           = var.sku
-  location                      = local.location
   admin_enabled                 = var.admin_enabled
   tags                          = var.tags
   public_network_access_enabled = var.public_network_access_enabled
@@ -61,10 +62,10 @@ resource "azurerm_container_registry" "this" {
   }
 
   dynamic "identity" {
-    for_each = var.identity != null ? { this = var.identity } : {}
+    for_each = var.managed_identities != null ? { this = var.managed_identities } : {}
     content {
-      type         = identity.value.type
-      identity_ids = identity.value.identity_ids
+      type         = identity.value.system_assigned && length(identity.value.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(identity.value.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
+      identity_ids = identity.value.user_assigned_resource_ids
     }
   }
 

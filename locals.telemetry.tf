@@ -1,7 +1,7 @@
 locals {
   # This is the unique id AVM Terraform modules that is supplied by the AVM team.
   # See https://azure.github.io/Azure-Verified-Modules/specs/shared/#id-sfr3---category-telemetry---deploymentusage-telemetry
-  telem_puid = "unofficial" #"46d3xgtf"
+  telem_puid = "46d3xgtf"
 
   # TODO: change this to the name of the module. See https://azure.github.io/Azure-Verified-Modules/specs/shared/#id-sfr3---category-telemetry---deploymentusage-telemetry
   module_name = "containerregistry-registry"

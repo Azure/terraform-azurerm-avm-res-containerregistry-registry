@@ -1,13 +1,9 @@
-output "name" {
-  value       = azurerm_container_registry.this.name
-  description = "The name of the Container Registry."
+# Module owners should include the full resource via a 'resource' output
+# https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tffr2---category-outputs---additional-terraform-outputs
+output "resource" {
+  value       = azurerm_container_registry.this
+  description = "This is the full output for the resource."
 }
-
-output "resource_id" {
-  value       = azurerm_container_registry.this.id
-  description = "The Container Registry resource ID."
-}
-
 
 output "private_endpoints" {
   value       = azurerm_private_endpoint.this
