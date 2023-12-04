@@ -16,7 +16,7 @@ terraform {
 
 variable "enable_telemetry" {
   type        = bool
-  default     = false
+  default     = true
   description = <<DESCRIPTION
 This variable controls whether or not telemetry is enabled for the module.
 For more information see https://aka.ms/avm/telemetryinfo.
@@ -46,7 +46,6 @@ module "containerregistry" {
   source = "../../"
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
-  location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
 }
 ```
@@ -89,7 +88,7 @@ If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
 
-Default: `false`
+Default: `true`
 
 ## Outputs
 
