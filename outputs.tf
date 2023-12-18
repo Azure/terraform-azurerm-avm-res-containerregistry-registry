@@ -12,7 +12,7 @@ output "name" {
 
 output "system_assigned_mi_principal_id" {
   description = "The system assigned managed identity principal ID of the parent resource."
-  value       = try(azurerm_container_registry.this.identity.principal_id, null)
+  value       = try(azurerm_container_registry.this.identity[0].principal_id, null)
 }
 
 output "private_endpoints" {
