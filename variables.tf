@@ -95,8 +95,8 @@ variable "managed_identities" {
     system_assigned            = optional(bool, false)
     user_assigned_resource_ids = optional(set(string), [])
   })
-  description = "Managed identities to be created for the resource."
   default     = {}
+  description = "Managed identities to be created for the resource."
 }
 
 variable "private_endpoints" {
@@ -178,6 +178,6 @@ DESCRIPTION
 
 variable "tags" {
   type        = map(any)
-  description = "The map of tags to be applied to the resource"
   default     = {}
+  description = "The map of tags to be applied to the resource"
 }

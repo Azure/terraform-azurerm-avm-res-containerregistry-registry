@@ -139,7 +139,12 @@ Default: `true`
 
 ### <a name="input_georeplications"></a> [georeplications](#input\_georeplications)
 
-Description: A map of locations where the Container Registry should be geo-replicated.
+Description: A list of geo-replication configurations for the Container Registry.
+
+- `location` - (Required) The geographic location where the Container Registry should be geo-replicated.
+- `regional_endpoint_enabled` - (Optional) Enables or disables regional endpoint. Defaults to `true`.
+- `zone_redundancy_enabled` - (Optional) Enables or disables zone redundancy. Defaults to `true`.
+- `tags` - (Optional) A map of additional tags for the geo-replication configuration. Defaults to `null`.
 
 Type:
 
