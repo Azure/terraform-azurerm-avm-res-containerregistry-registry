@@ -51,6 +51,7 @@ jobs:
         uses: Azure/terraform-azurerm-avm-template/.github/actions/e2e-testexamples@main
         with:
           example: ${{ matrix.example }}
+
   # This job is only run when all the previous jobs are successful.
   # We can use it for PR validation to ensure all examples have completed.
   testexamplescomplete:
