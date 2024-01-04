@@ -35,3 +35,8 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+*tfplan*
+README-generated.md
+avm.tflint.hcl
+avm.tflint_example.hcl
+avmmakefile
