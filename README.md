@@ -23,9 +23,9 @@ The following requirements are needed by this module:
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (3.77.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.71.0, < 4.0.0)
 
-- <a name="provider_random"></a> [random](#provider\_random) (3.5.1)
+- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0, < 4.0.0)
 
 ## Resources
 
@@ -179,7 +179,7 @@ Default: `{}`
 
 ### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
 
-Description: n/a
+Description: Managed identities to be created for the resource.
 
 Type:
 
@@ -363,7 +363,7 @@ Default: `"Premium"`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
-Description: n/a
+Description: The map of tags to be applied to the resource
 
 Type: `map(any)`
 
