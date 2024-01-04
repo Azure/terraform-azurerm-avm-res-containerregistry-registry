@@ -32,6 +32,7 @@ The following providers are used by this module:
 The following resources are used by this module:
 
 - [azurerm_container_registry.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry) (resource)
+- [azurerm_container_registry_webhook.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry_webhook) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
@@ -374,6 +375,45 @@ Type: `map(any)`
 
 Default: `{}`
 
+### <a name="input_webhooks"></a> [webhooks](#input\_webhooks)
+
+Description: - `actions` - (Required) A list of actions that trigger the Webhook to post notifications. At least one action needs to be specified. Valid values are: `push`, `delete`, `quarantine`, `chart_push`, `chart_delete`
+- `custom_headers` - (Optional) Custom headers that will be added to the webhook notifications request.
+- `name` - (Required) Specifies the name of the Container Registry Webhook. Only Alphanumeric characters allowed. Changing this forces a new resource to be created.
+- `scope` - (Optional) Specifies the scope of repositories that can trigger an event. For example, `foo:*` means events for all tags under repository `foo`. `foo:bar` means events for 'foo:bar' only. `foo` is equivalent to `foo:latest`. Empty means all events. Defaults to `""`.
+- `service_uri` - (Required) Specifies the service URI for the Webhook to post notifications.
+- `status` - (Optional) Specifies if this Webhook triggers notifications or not. Valid values: `enabled` and `disabled`. Default is `enabled`.
+- `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+`timeouts` block supports the following:
+- `create` - (Defaults to 30 minutes) Used when creating the Container Registry Webhook.
+- `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry Webhook.
+- `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Webhook.
+- `update` - (Defaults to 30 minutes) Used when updating the Container Registry Webhook.
+
+Type:
+
+```hcl
+map(object({
+    actions        = set(string)
+    custom_headers = optional(map(string))
+    name           = string
+    scope          = optional(string)
+    service_uri    = string
+    status         = optional(string)
+    tags           = optional(map(string))
+    timeouts = optional(object({
+      create = optional(string)
+      delete = optional(string)
+      read   = optional(string)
+      update = optional(string)
+    }))
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_zone_redundancy_enabled"></a> [zone\_redundancy\_enabled](#input\_zone\_redundancy\_enabled)
 
 Description: Specifies whether zone redundancy is enabled.  Modifying this forces a new resource to be created.
@@ -393,6 +433,10 @@ Description: A map of private endpoints. The map key is the supplied input to va
 ### <a name="output_resource"></a> [resource](#output\_resource)
 
 Description: This is the full output for the resource.
+
+### <a name="output_webhooks"></a> [webhooks](#output\_webhooks)
+
+Description: A map of webhooks. The map key is the supplied input to var.webhooks. The map value is the entire webhooks resource.
 
 ## Modules
 

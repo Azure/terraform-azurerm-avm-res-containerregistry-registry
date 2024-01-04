@@ -149,6 +149,7 @@ A map of private endpoints to create on this resource. The map key is deliberate
   - `name` - The name of the IP configuration.
   - `private_ip_address` - The private IP address of the IP configuration.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "role_assignments" {
@@ -174,10 +175,12 @@ A map of role assignments to create on this resource. The map key is deliberatel
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "tags" {
   type        = map(any)
   default     = {}
   description = "The map of tags to be applied to the resource"
+  nullable    = false
 }
