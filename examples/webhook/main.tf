@@ -58,7 +58,6 @@ locals {
   }
 }
 
-# This is the module call
 module "containerregistry" {
   source = "../../"
   # source             = "Azure/avm-containerregistry-registry/azurerm"
