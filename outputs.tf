@@ -26,3 +26,8 @@ output "resource" {
   description = "This is the full output for the resource."
   value       = azurerm_container_registry.this
 }
+
+output "webhooks" {
+  description = "A map of webhooks. The map key is the supplied input to var.webhooks. The map value is the entire webhooks resource."
+  value       = azurerm_container_registry_webhook.this
+}

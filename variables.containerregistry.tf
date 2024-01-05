@@ -5,7 +5,10 @@ variable "sku" {
     condition     = contains(["Basic", "Standard", "Premium"], var.sku)
     error_message = "The SKU name must be either `Basic`, `Standard` or `Premium`."
   }
-  description = "The SKU name of the Container Registry. Default is `Premium`. `Possible values are `Basic`, `Standard` and `Premium`."
+  description = <<DESCRIPTION
+The SKU name of the Container Registry. Default is `Premium`.
+Possible values are `Basic`, `Standard` and `Premium`."
+DESCRIPTION
 }
 
 variable "admin_enabled" {
@@ -72,7 +75,15 @@ variable "georeplications" {
     tags                      = optional(map(any), null)
   }))
   default     = []
-  description = "A map of locations where the Container Registry should be geo-replicated."
+  description = <<DESCRIPTION
+A list of geo-replication configurations for the Container Registry.
+
+- `location` - (Required) The geographic location where the Container Registry should be geo-replicated.
+- `regional_endpoint_enabled` - (Optional) Enables or disables regional endpoint. Defaults to `true`.
+- `zone_redundancy_enabled` - (Optional) Enables or disables zone redundancy. Defaults to `true`.
+- `tags` - (Optional) A map of additional tags for the geo-replication configuration. Defaults to `null`.
+
+DESCRIPTION
 }
 
 variable "network_rule_set" {
