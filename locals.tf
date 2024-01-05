@@ -1,4 +1,3 @@
-
 locals {
   # Private endpoint application security group associations
   private_endpoint_application_security_group_associations = { for assoc in flatten([
@@ -10,5 +9,7 @@ locals {
       }
     ]
   ]) : "${assoc.pe_key}-${assoc.asg_key}" => assoc }
+
+  resource_group_location            = try(data.azurerm_resource_group.parent[0].location, null)
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
 }

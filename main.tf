@@ -5,7 +5,7 @@ data "azurerm_resource_group" "parent" {
 }
 
 resource "azurerm_container_registry" "this" {
-  location                      = try(data.azurerm_resource_group.parent[0].location, var.location)
+  location                      = coalesce(var.location, local.resource_group_location)
   name                          = var.name
   resource_group_name           = var.resource_group_name
   sku                           = var.sku
