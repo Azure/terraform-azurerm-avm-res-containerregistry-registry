@@ -5,7 +5,10 @@ variable "sku" {
     condition     = contains(["Basic", "Standard", "Premium"], var.sku)
     error_message = "The SKU name must be either `Basic`, `Standard` or `Premium`."
   }
-  description = "The SKU name of the Container Registry. Default is `Premium`. `Possible values are `Basic`, `Standard` and `Premium`."
+  description = <<DESCRIPTION
+The SKU name of the Container Registry. Default is `Premium`.
+Possible values are `Basic`, `Standard` and `Premium`."
+DESCRIPTION
 }
 
 variable "admin_enabled" {
