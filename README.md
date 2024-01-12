@@ -23,9 +23,9 @@ The following requirements are needed by this module:
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (3.77.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.71.0, < 4.0.0)
 
-- <a name="provider_random"></a> [random](#provider\_random) (3.5.1)
+- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0, < 4.0.0)
 
 ## Resources
 
@@ -139,7 +139,12 @@ Default: `true`
 
 ### <a name="input_georeplications"></a> [georeplications](#input\_georeplications)
 
-Description: A map of locations where the Container Registry should be geo-replicated.
+Description: A list of geo-replication configurations for the Container Registry.
+
+- `location` - (Required) The geographic location where the Container Registry should be geo-replicated.
+- `regional_endpoint_enabled` - (Optional) Enables or disables regional endpoint. Defaults to `true`.
+- `zone_redundancy_enabled` - (Optional) Enables or disables zone redundancy. Defaults to `true`.
+- `tags` - (Optional) A map of additional tags for the geo-replication configuration. Defaults to `null`.
 
 Type:
 
@@ -179,7 +184,7 @@ Default: `{}`
 
 ### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
 
-Description: n/a
+Description: Managed identities to be created for the resource.
 
 Type:
 
@@ -363,7 +368,7 @@ Default: `"Premium"`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
-Description: n/a
+Description: The map of tags to be applied to the resource
 
 Type: `map(any)`
 

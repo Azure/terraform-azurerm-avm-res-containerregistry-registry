@@ -8,16 +8,6 @@ terraform {
   }
 }
 
-variable "enable_telemetry" {
-  type        = bool
-  default     = false
-  description = <<DESCRIPTION
-This variable controls whether or not telemetry is enabled for the module.
-For more information see https://aka.ms/avm/telemetryinfo.
-If it is set to false, then no telemetry will be collected.
-DESCRIPTION
-}
-
 provider "azurerm" {
   skip_provider_registration = true
   features {
@@ -44,7 +34,6 @@ module "containerregistry" {
   source = "../../"
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
-  enable_telemetry    = var.enable_telemetry
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   # australiasoutheast doesn't support zone redundancy for ACR (https://learn.microsoft.com/en-us/azure/container-registry/zone-redundancy#regional-support)
