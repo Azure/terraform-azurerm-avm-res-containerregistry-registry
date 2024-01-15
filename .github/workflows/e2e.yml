@@ -1,58 +1,63 @@
 ---
-name: e2e test
-
-on:
-  pull_request:
-    types: ['opened', 'reopened', 'synchronize']
-  merge_group:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  id-token: write
-
-jobs:
-  getexamples:
-    runs-on: ubuntu-latest
-    outputs:
-      examples: ${{ steps.getexamples.outputs.examples }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: get examples
-        id: getexamples
-        uses: Azure/terraform-azurerm-avm-template/.github/actions/e2e-getexamples@main
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-  testexamples:
-    runs-on: ubuntu-latest
-    needs: getexamples
-    environment: test
-    env:
-      TF_IN_AUTOMATION: 1
-      TF_VAR_enable_telemetry: false
-    strategy:
-      matrix:
-        example: ${{ fromJson(needs.getexamples.outputs.examples) }}
-      max-parallel: 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: Azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Test example
-        uses: Azure/terraform-azurerm-avm-template/.github/actions/e2e-testexamples@main
-        with:
-          example: ${{ matrix.example }}
-
-  # This job is only run when all the previous jobs are successful.
-  # We can use it for PR validation to ensure all examples have completed.
-  testexamplescomplete:
-    runs-on: ubuntu-latest
-    needs: testexamples
-    steps:
-      - run: echo "All tests passed"
+  name: e2e test
+  
+  on:
+    pull_request:
+      types: ['opened', 'reopened', 'synchronize']
+    merge_group:
+    workflow_dispatch:
+  
+  permissions:
+    contents: read
+    id-token: write
+  
+  jobs:
+    getexamples:
+      if: github.event.repository.name != 'terraform-azurerm-avm-template'
+      runs-on: ubuntu-latest
+      outputs:
+        examples: ${{ steps.getexamples.outputs.examples }}
+      steps:
+        - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        - name: get examples
+          id: getexamples
+          uses: Azure/terraform-azurerm-avm-template/.github/actions/e2e-getexamples@main
+          with:
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+  
+    testexamples:
+      if: github.event.repository.name != 'terraform-azurerm-avm-template'
+      runs-on: ubuntu-latest # [ self-hosted, 1ES.Pool=terraform-azurerm-avm-res-containerregistry-registry ]
+      needs: getexamples
+      environment: test
+      env:
+        TF_IN_AUTOMATION: 1
+        TF_VAR_enable_telemetry: false
+      strategy:
+        matrix:
+          example: ${{ fromJson(needs.getexamples.outputs.examples) }}
+        max-parallel: 5
+        fail-fast: false
+      steps:
+        - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+  
+        - uses: Azure/login@v1
+          with:
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  
+        - name: Test example
+          uses: Azure/terraform-azurerm-avm-template/.github/actions/e2e-testexamples@main
+          with:
+            example: ${{ matrix.example }}
+  
+    # This job is only run when all the previous jobs are successful.
+    # We can use it for PR validation to ensure all examples have completed.
+    testexamplescomplete:
+      if: github.event.repository.name != 'terraform-azurerm-avm-template'
+      runs-on: ubuntu-latest
+      needs: testexamples
+      steps:
+        - run: echo "All tests passed"
+        
