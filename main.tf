@@ -66,6 +66,10 @@ resource "azurerm_container_registry" "this" {
     }
   }
 
+  trust_policy {
+    enabled = var.enable_trust_policy
+  }
+
   lifecycle {
     precondition {
       condition     = var.zone_redundancy_enabled && var.sku == "Premium" || !var.zone_redundancy_enabled
