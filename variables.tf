@@ -69,6 +69,12 @@ If it is set to false, then no telemetry will be collected.
 DESCRIPTION
 }
 
+variable "enable_trust_policy" {
+  type        = bool
+  default     = false
+  description = "Specified whether trust policy is enabled for this Container Registry."
+}
+
 variable "location" {
   type        = string
   default     = null

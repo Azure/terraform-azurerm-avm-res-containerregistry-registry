@@ -129,6 +129,14 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_enable_trust_policy"></a> [enable\_trust\_policy](#input\_enable\_trust\_policy)
+
+Description: Specified whether trust policy is enabled for this Container Registry.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_export_policy_enabled"></a> [export\_policy\_enabled](#input\_export\_policy\_enabled)
 
 Description: Specifies whether export policy is enabled. Defaults to true. In order to set it to false, make sure the public\_network\_access\_enabled is also set to false.
