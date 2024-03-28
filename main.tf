@@ -65,7 +65,6 @@ resource "azurerm_container_registry" "this" {
       enabled = retention_policy.value.enabled
     }
   }
-
   trust_policy {
     enabled = var.enable_trust_policy
   }
