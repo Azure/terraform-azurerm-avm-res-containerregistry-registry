@@ -32,29 +32,30 @@ resource "azurerm_resource_group" "this" {
 # This is the module call
 module "containerregistry" {
   source = "../../"
-  # source             = "Azure/avm-containerregistry-registry/azurerm"
+
   name                = module.naming.container_registry.name_unique
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
-  # australiasoutheast doesn't support zone redundancy for ACR (https://learn.microsoft.com/en-us/azure/container-registry/zone-redundancy#regional-support)
-  zone_redundancy_enabled = false
+  zone_redundancy_enabled = false # australiasoutheast does not support zone redundancy for ACR
 
-  georeplications = [
-    {
-      location = "australiaeast"
-      # zone redundancy is enabled by default, and is supported in australia east
+  georeplications = {
+    replication1 = {
+      location                  = "australiaeast"
+      regional_endpoint_enabled = true
+      zone_redundancy_enabled   = true
       tags = {
         environment = "prod"
         department  = "engineering"
       }
-    },
-    {
-      location                = "australiacentral"
-      zone_redundancy_enabled = false
+    }
+    replication2 = {
+      location                  = "australiacentral"
+      regional_endpoint_enabled = true
+      zone_redundancy_enabled   = false
       tags = {
         environment = "pre-prod"
         department  = "engineering"
       }
     }
-  ]
+  }
 }
