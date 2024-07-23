@@ -77,16 +77,16 @@ variable "enable_trust_policy" {
 
 variable "location" {
   type        = string
-  default     = null
+  nullable    = false
   description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
 }
 
 variable "lock" {
   type = object({
     name = optional(string, null)
-    kind = optional(string, "None")
+    kind = optional(string)
   })
-  default     = {}
+  default     = null
   description = "The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
   nullable    = false
 
