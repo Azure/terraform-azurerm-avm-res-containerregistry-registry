@@ -20,7 +20,6 @@ variable "public_network_access_enabled" {
   description = "Specifies whether public access is permitted."
 }
 
-
 variable "quarantine_policy_enabled" {
   type        = bool
   default     = false
