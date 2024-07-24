@@ -38,6 +38,8 @@ variable "customer_managed_key" {
   - `key_version` - (Optional) The version of the Customer Managed Key Vault Key.
   - `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key.
     - `resource_id` - (Required) The resource ID of the User Assigned Identity that has access to the key.
+  
+  Before you enable encryption please review [this documentation](https://learn.microsoft.com/en-us/azure/container-registry/tutorial-customer-managed-keys#before-you-enable-a-customer-managed-key)
   DESCRIPTION
 }
 

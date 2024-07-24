@@ -16,7 +16,8 @@ resource "azurerm_container_registry" "this" {
   dynamic "encryption" {
     for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}
     content {
-      identity_client_id = try(data.azurerm_user_assigned_identity.this[0].client_id, azurerm_container_registry.this.identity[0].principal_id, null)
+      enabled            = true # deprecated property. Still required to enable encryption
+      identity_client_id = try(data.azurerm_user_assigned_identity.this[0].client_id, null)
       key_vault_key_id   = data.azurerm_key_vault_key.this[0].id
     }
   }
@@ -78,6 +79,10 @@ resource "azurerm_container_registry" "this" {
     precondition {
       condition     = var.network_rule_set != null && var.sku == "Premium" || var.network_rule_set == null
       error_message = "The Premium SKU is required if a network rule set is defined."
+    }
+    precondition {
+      condition     = var.customer_managed_key != null && var.sku == "Premium" || var.customer_managed_key == null
+      error_message = "The Premium SKU is required if a customer managed key is defined."
     }
   }
 }

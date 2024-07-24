@@ -41,7 +41,7 @@ resource "azurerm_resource_group" "this" {
 
 resource "azurerm_user_assigned_identity" "this" {
   location            = azurerm_resource_group.this.location
-  name                = "uai-acg"
+  name                = module.naming.user_assigned_identity.name_unique
   resource_group_name = azurerm_resource_group.this.name
 }
 
@@ -49,7 +49,7 @@ data "azurerm_client_config" "this" {}
 
 resource "azurerm_key_vault" "this" {
   location                   = azurerm_resource_group.this.location
-  name                       = "kv-acr"
+  name                       = module.naming.key_vault.name_unique
   resource_group_name        = azurerm_resource_group.this.name
   sku_name                   = "premium"
   tenant_id                  = data.azurerm_client_config.this.tenant_id
@@ -62,6 +62,7 @@ resource "azurerm_key_vault" "this" {
       "Delete",
       "Get",
       "Purge",
+      "List",
       "Recover",
       "Update",
       "GetRotationPolicy",
