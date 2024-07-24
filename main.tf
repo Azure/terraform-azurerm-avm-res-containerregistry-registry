@@ -1,11 +1,5 @@
-data "azurerm_resource_group" "parent" {
-  count = var.location == null ? 1 : 0
-
-  name = var.resource_group_name
-}
-
 resource "azurerm_container_registry" "this" {
-  location                      = coalesce(var.location, local.resource_group_location)
+  location                      = var.location
   name                          = var.name
   resource_group_name           = var.resource_group_name
   sku                           = var.sku
@@ -19,6 +13,13 @@ resource "azurerm_container_registry" "this" {
   tags                          = var.tags
   zone_redundancy_enabled       = var.zone_redundancy_enabled
 
+  dynamic "encryption" {
+    for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}
+    content {
+      identity_client_id = try(data.azurerm_user_assigned_identity.this[0].client_id, azurerm_container_registry.this.identity[0].principal_id, null)
+      key_vault_key_id   = data.azurerm_key_vault_key.this[0].id
+    }
+  }
   dynamic "georeplications" {
     for_each = var.georeplications
     content {
@@ -29,10 +30,10 @@ resource "azurerm_container_registry" "this" {
     }
   }
   dynamic "identity" {
-    for_each = var.managed_identities != null ? { this = var.managed_identities } : {}
+    for_each = local.managed_identities.system_assigned_user_assigned
     content {
-      type         = identity.value.system_assigned && length(identity.value.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(identity.value.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
-      identity_ids = identity.value.user_assigned_resource_ids
+      type         = identity.value.type
+      identity_ids = try(concat(identity.value.user_assigned_resource_ids, toset([data.azurerm_user_assigned_identity.this[0].client_id])), identity.value.user_assigned_resource_ids) # attempt to add managed identity for encryption to acr
     }
   }
   # Only one network_rule_set block is allowed.
@@ -82,11 +83,12 @@ resource "azurerm_container_registry" "this" {
 }
 
 resource "azurerm_management_lock" "this" {
-  count = var.lock.kind != "None" ? 1 : 0
+  count = var.lock != null ? 1 : 0
 
   lock_level = var.lock.kind
-  name       = coalesce(var.lock.name, "lock-${var.name}")
+  name       = coalesce(var.lock.name, "lock-${var.lock.kind}")
   scope      = azurerm_container_registry.this.id
+  notes      = var.lock.kind == "CanNotDelete" ? "Cannot delete the resource or its child resources." : "Cannot delete or modify the resource or its child resources."
 }
 
 resource "azurerm_role_assignment" "this" {
@@ -97,6 +99,7 @@ resource "azurerm_role_assignment" "this" {
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
+  principal_type                         = each.value.principal_type
   role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
