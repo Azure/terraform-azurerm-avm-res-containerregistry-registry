@@ -65,15 +65,15 @@ DESCRIPTION
 }
 
 variable "georeplications" {
-  type = list(object({
+  type = map(object({
     location                  = string
     regional_endpoint_enabled = optional(bool, true)
     zone_redundancy_enabled   = optional(bool, true)
     tags                      = optional(map(any), null)
   }))
-  default     = []
+  default     = {}
   description = <<DESCRIPTION
-A list of geo-replication configurations for the Container Registry.
+A map of geo-replication configurations for the Container Registry.
 
 - `location` - (Required) The geographic location where the Container Registry should be geo-replicated.
 - `regional_endpoint_enabled` - (Optional) Enables or disables regional endpoint. Defaults to `true`.

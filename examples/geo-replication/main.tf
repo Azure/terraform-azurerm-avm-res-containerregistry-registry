@@ -39,16 +39,16 @@ module "containerregistry" {
   # australiasoutheast doesn't support zone redundancy for ACR (https://learn.microsoft.com/en-us/azure/container-registry/zone-redundancy#regional-support)
   zone_redundancy_enabled = false
 
-  georeplications = [
-    {
+  georeplications = {
+    secondary = {
       location = "australiaeast"
       # zone redundancy is enabled by default, and is supported in australia east
       tags = {
         environment = "prod"
         department  = "engineering"
       }
-    },
-    {
+    }
+    tertiary = {
       location                = "australiacentral"
       zone_redundancy_enabled = false
       tags = {
@@ -56,5 +56,5 @@ module "containerregistry" {
         department  = "engineering"
       }
     }
-  ]
+  }
 }

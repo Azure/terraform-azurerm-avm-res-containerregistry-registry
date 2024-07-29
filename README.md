@@ -149,7 +149,7 @@ Default: `true`
 
 ### <a name="input_georeplications"></a> [georeplications](#input\_georeplications)
 
-Description: A list of geo-replication configurations for the Container Registry.
+Description: A map of geo-replication configurations for the Container Registry.
 
 - `location` - (Required) The geographic location where the Container Registry should be geo-replicated.
 - `regional_endpoint_enabled` - (Optional) Enables or disables regional endpoint. Defaults to `true`.
@@ -159,7 +159,7 @@ Description: A list of geo-replication configurations for the Container Registry
 Type:
 
 ```hcl
-list(object({
+map(object({
     location                  = string
     regional_endpoint_enabled = optional(bool, true)
     zone_redundancy_enabled   = optional(bool, true)
@@ -167,7 +167,7 @@ list(object({
   }))
 ```
 
-Default: `[]`
+Default: `{}`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
