@@ -11,3 +11,7 @@ locals {
   ]) : "${assoc.pe_key}-${assoc.asg_key}" => assoc }
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
 }
+
+locals {
+  ordered_geo_replications = { for geo in var.georeplications : geo.location => geo }
+}
