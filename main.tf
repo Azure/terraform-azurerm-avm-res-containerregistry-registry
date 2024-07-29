@@ -14,7 +14,7 @@ resource "azurerm_container_registry" "this" {
   zone_redundancy_enabled       = var.zone_redundancy_enabled
 
   dynamic "georeplications" {
-    for_each = var.georeplications
+    for_each = local.ordered_geo_replications
     content {
       location                  = georeplications.value.location
       regional_endpoint_enabled = georeplications.value.regional_endpoint_enabled
