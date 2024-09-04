@@ -10,11 +10,14 @@ resource "azurerm_container_registry" "this" {
   network_rule_bypass_option    = var.network_rule_bypass_option
   public_network_access_enabled = var.public_network_access_enabled
   quarantine_policy_enabled     = var.quarantine_policy_enabled
+  retention_policy_in_days      = var.retention_policy_in_days
   tags                          = var.tags
+  trust_policy_enabled          = var.enable_trust_policy
   zone_redundancy_enabled       = var.zone_redundancy_enabled
 
   dynamic "georeplications" {
     for_each = local.ordered_geo_replications
+
     content {
       location                  = georeplications.value.location
       regional_endpoint_enabled = georeplications.value.regional_endpoint_enabled
@@ -24,6 +27,7 @@ resource "azurerm_container_registry" "this" {
   }
   dynamic "identity" {
     for_each = var.managed_identities != null ? { this = var.managed_identities } : {}
+
     content {
       type         = identity.value.system_assigned && length(identity.value.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(identity.value.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
       identity_ids = identity.value.user_assigned_resource_ids
@@ -33,34 +37,19 @@ resource "azurerm_container_registry" "this" {
   # Create it if the variable is not null.
   dynamic "network_rule_set" {
     for_each = var.network_rule_set != null ? { this = var.network_rule_set } : {}
+
     content {
       default_action = network_rule_set.value.default_action
 
       dynamic "ip_rule" {
         for_each = network_rule_set.value.ip_rule
+
         content {
           action   = ip_rule.value.action
           ip_range = ip_rule.value.ip_range
         }
       }
-      dynamic "virtual_network" {
-        for_each = network_rule_set.value.virtual_network
-        content {
-          action    = virtual_network.value.action
-          subnet_id = virtual_network.value.subnet_id
-        }
-      }
     }
-  }
-  dynamic "retention_policy" {
-    for_each = var.retention_policy != null ? { this = var.retention_policy } : {}
-    content {
-      days    = retention_policy.value.days
-      enabled = retention_policy.value.enabled
-    }
-  }
-  trust_policy {
-    enabled = var.enable_trust_policy
   }
 
   lifecycle {
@@ -112,18 +101,21 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
 
   dynamic "enabled_log" {
     for_each = each.value.log_categories
+
     content {
       category = enabled_log.value
     }
   }
   dynamic "enabled_log" {
     for_each = each.value.log_groups
+
     content {
       category_group = enabled_log.value
     }
   }
   dynamic "metric" {
     for_each = each.value.metric_categories
+
     content {
       category = metric.value
     }
