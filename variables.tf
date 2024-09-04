@@ -78,7 +78,7 @@ DESCRIPTION
 variable "enable_trust_policy" {
   type        = bool
   default     = false
-  description = "Specified whether trust policy is enabled for this Container Registry."
+  description = "Specified whether trust policy is enabled for this Container Registry. Defaults to `false`."
 }
 
 variable "lock" {
