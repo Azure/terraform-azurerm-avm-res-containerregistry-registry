@@ -10,7 +10,7 @@ variable "name" {
 
   validation {
     condition     = can(regex("^[[:alnum:]]{5,50}$", var.name))
-    error_message = "The name must be between 5 and 50 characters long and can only contain lowercase letters and numbers."
+    error_message = "The name must be between 5 and 50 characters long and can only contain letters and numbers."
   }
 }
 
