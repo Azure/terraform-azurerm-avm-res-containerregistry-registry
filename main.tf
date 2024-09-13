@@ -11,8 +11,18 @@ resource "azurerm_container_registry" "this" {
   public_network_access_enabled = var.public_network_access_enabled
   quarantine_policy_enabled     = var.quarantine_policy_enabled
   tags                          = var.tags
-  zone_redundancy_enabled       = var.zone_redundancy_enabled
+  #trust_policy_enabled          = var.enable_trust_policy 
+  zone_redundancy_enabled = var.zone_redundancy_enabled
 
+  dynamic "encryption" {
+    for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}
+
+    content {
+      enabled            = true # deprecated property. Still required to enable encryption
+      identity_client_id = data.azurerm_user_assigned_identity.this[0].client_id
+      key_vault_key_id   = data.azurerm_key_vault_key.this[0].id
+    }
+  }
   dynamic "georeplications" {
     for_each = local.ordered_geo_replications
 
@@ -24,10 +34,10 @@ resource "azurerm_container_registry" "this" {
     }
   }
   dynamic "identity" {
-    for_each = var.managed_identities != null ? { this = var.managed_identities } : {}
+    for_each = local.managed_identities.system_assigned_user_assigned
 
     content {
-      type         = identity.value.system_assigned && length(identity.value.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(identity.value.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
+      type         = identity.value.type
       identity_ids = identity.value.user_assigned_resource_ids
     }
   }
@@ -77,6 +87,14 @@ resource "azurerm_container_registry" "this" {
     precondition {
       condition     = var.network_rule_set != null && var.sku == "Premium" || var.network_rule_set == null
       error_message = "The Premium SKU is required if a network rule set is defined."
+    }
+    precondition {
+      condition     = var.customer_managed_key != null && var.sku == "Premium" || var.customer_managed_key == null
+      error_message = "The Premium SKU is required if a customer managed key is defined."
+    }
+    precondition {
+      condition     = var.customer_managed_key != null && contains(var.managed_identities.user_assigned_resource_ids, try(var.customer_managed_key.user_assigned_identity.resource_id, "null")) || var.customer_managed_key == null
+      error_message = "The user assigned managed identity for the customer managed key encryption must be assigned to the container registry."
     }
   }
 }
