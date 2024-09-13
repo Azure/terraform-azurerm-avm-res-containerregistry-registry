@@ -1,4 +1,24 @@
 locals {
+  managed_identities = {
+    system_assigned_user_assigned = (var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0) ? {
+      this = {
+        type                       = var.managed_identities.system_assigned && length(var.managed_identities.user_assigned_resource_ids) > 0 ? "SystemAssigned, UserAssigned" : length(var.managed_identities.user_assigned_resource_ids) > 0 ? "UserAssigned" : "SystemAssigned"
+        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
+      }
+    } : {}
+    system_assigned = var.managed_identities.system_assigned ? {
+      this = {
+        type = "SystemAssigned"
+      }
+    } : {}
+    user_assigned = length(var.managed_identities.user_assigned_resource_ids) > 0 ? {
+      this = {
+        type                       = "UserAssigned"
+        user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
+      }
+    } : {}
+  }
+  ordered_geo_replications = { for geo in var.georeplications : geo.location => geo }
   # Private endpoint application security group associations
   private_endpoint_application_security_group_associations = { for assoc in flatten([
     for pe_k, pe_v in var.private_endpoints : [
@@ -10,8 +30,4 @@ locals {
     ]
   ]) : "${assoc.pe_key}-${assoc.asg_key}" => assoc }
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
-}
-
-locals {
-  ordered_geo_replications = { for geo in var.georeplications : geo.location => geo }
 }
