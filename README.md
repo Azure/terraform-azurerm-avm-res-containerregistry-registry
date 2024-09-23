@@ -84,8 +84,7 @@ Default: `false`
 
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
-Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.  
-Controls the Customer managed key configuration on this resource. The following properties can be specified:
+Description: Controls the Customer managed key configuration on this resource. The following properties can be specified:
 - `key_vault_resource_id` - (Required) Resource ID of the Key Vault that the customer managed key belongs to.
 - `key_name` - (Required) Specifies the name of the Customer Managed Key Vault Key.
 - `key_version` - (Optional) The version of the Customer Managed Key Vault Key.
