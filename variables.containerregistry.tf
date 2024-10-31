@@ -109,17 +109,13 @@ Requires Premium SKU.
 DESCRIPTION
 }
 
-variable "retention_policy" {
-  type = object({
-    days    = optional(number, 7)
-    enabled = optional(bool, false)
-  })
-  default     = {}
+variable "retention_policy_in_days" {
+  type        = number
+  default     = 7
   description = <<DESCRIPTION
 If enabled, this retention policy will purge an untagged manifest after a specified number of days.
 
 - `days` - (Optional) The number of days before the policy Defaults to 7 days.
-- `enabled` - (Optional) Whether the retention policy is enabled.  Defaults to false.
 
 DESCRIPTION
 }
