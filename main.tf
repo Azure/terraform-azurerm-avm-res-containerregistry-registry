@@ -11,14 +11,12 @@ resource "azurerm_container_registry" "this" {
   public_network_access_enabled = var.public_network_access_enabled
   quarantine_policy_enabled     = var.quarantine_policy_enabled
   tags                          = var.tags
-  #trust_policy_enabled          = var.enable_trust_policy 
-  zone_redundancy_enabled = var.zone_redundancy_enabled
+  zone_redundancy_enabled       = var.zone_redundancy_enabled
 
   dynamic "encryption" {
     for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}
 
     content {
-      enabled            = true # deprecated property. Still required to enable encryption
       identity_client_id = data.azurerm_user_assigned_identity.this[0].client_id
       key_vault_key_id   = data.azurerm_key_vault_key.this[0].id
     }
