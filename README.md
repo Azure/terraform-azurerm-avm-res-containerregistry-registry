@@ -15,11 +15,11 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.3.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.71.0, < 4.0.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4, < 5.0.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
-- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
+- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 5.0.0)
 
 ## Resources
 
@@ -251,9 +251,6 @@ Requires Premium SKU.
 - `ip_rules` - (Optional) A list of IP rules in CIDR format. Defaults to `[]`.
   - `action` - Only "Allow" is permitted
   - `ip_range` - The CIDR block from which requests will match the rule.
-- `virtual_network` - (Optional) When using with Service Endpoints, a list of subnet IDs to associate with the Container Registry. Defaults to `[]`.
-  - `action` - Only "Allow" is permitted
-  - `subnet_id` - The subnet id from which requests will match the rule.
 
 Type:
 
@@ -264,11 +261,6 @@ object({
       # since the `action` property only permits `Allow`, this is hard-coded.
       action   = optional(string, "Allow")
       ip_range = string
-    })), [])
-    virtual_network = optional(list(object({
-      # since the `action` property only permits `Allow`, this is hard-coded.
-      action    = optional(string, "Allow")
-      subnet_id = string
     })), [])
   })
 ```
@@ -366,23 +358,15 @@ Type: `bool`
 
 Default: `false`
 
-### <a name="input_retention_policy"></a> [retention\_policy](#input\_retention\_policy)
+### <a name="input_retention_policy_in_days"></a> [retention\_policy\_in\_days](#input\_retention\_policy\_in\_days)
 
 Description: If enabled, this retention policy will purge an untagged manifest after a specified number of days.
 
 - `days` - (Optional) The number of days before the policy Defaults to 7 days.
-- `enabled` - (Optional) Whether the retention policy is enabled.  Defaults to false.
 
-Type:
+Type: `number`
 
-```hcl
-object({
-    days    = optional(number, 7)
-    enabled = optional(bool, false)
-  })
-```
-
-Default: `{}`
+Default: `7`
 
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 

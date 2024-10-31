@@ -59,7 +59,7 @@ variable "network_rule_bypass_option" {
     error_message = "The network_rule_bypass_option variable must be either `AzureServices` or `None`."
   }
   description = <<DESCRIPTION
-Specifies whether to allow trusted Azure services access to a network restricted Container Registry.  
+Specifies whether to allow trusted Azure services access to a network restricted Container Registry.
 Possible values are `None` and `AzureServices`. Defaults to `None`.
 DESCRIPTION
 }
@@ -91,11 +91,6 @@ variable "network_rule_set" {
       action   = optional(string, "Allow")
       ip_range = string
     })), [])
-    virtual_network = optional(list(object({
-      # since the `action` property only permits `Allow`, this is hard-coded.
-      action    = optional(string, "Allow")
-      subnet_id = string
-    })), [])
   })
   default = null
   validation {
@@ -110,24 +105,17 @@ Requires Premium SKU.
 - `ip_rules` - (Optional) A list of IP rules in CIDR format. Defaults to `[]`.
   - `action` - Only "Allow" is permitted
   - `ip_range` - The CIDR block from which requests will match the rule.
-- `virtual_network` - (Optional) When using with Service Endpoints, a list of subnet IDs to associate with the Container Registry. Defaults to `[]`.
-  - `action` - Only "Allow" is permitted
-  - `subnet_id` - The subnet id from which requests will match the rule.
 
 DESCRIPTION
 }
 
-variable "retention_policy" {
-  type = object({
-    days    = optional(number, 7)
-    enabled = optional(bool, false)
-  })
-  default     = {}
+variable "retention_policy_in_days" {
+  type        = number
+  default     = 7
   description = <<DESCRIPTION
-If enabled, this retention policy will purge an untagged manifest after a specified number of days.  
+If enabled, this retention policy will purge an untagged manifest after a specified number of days.
 
 - `days` - (Optional) The number of days before the policy Defaults to 7 days.
-- `enabled` - (Optional) Whether the retention policy is enabled.  Defaults to false.
 
 DESCRIPTION
 }
