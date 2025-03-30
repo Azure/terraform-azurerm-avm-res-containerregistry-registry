@@ -241,20 +241,3 @@ variable "tags" {
   default     = null
   description = "(Optional) Tags of the resource."
 }
-
-variable "scope_maps" {
-  type = map(object({
-    name        = string
-    actions     = list(string)
-    description = optional(string, null)
-  }))
-  default     = {}
-  description = <<DESCRIPTION
-A map of scope maps to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `name` - The name of the scope map.
-- `actions` - A list of actions that this scope map can perform. Example: "repo/content/read", "repo2/content/delete"
-- `description` - The description of the scope map.
-DESCRIPTION
-  nullable    = false
-}
