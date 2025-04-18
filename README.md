@@ -400,6 +400,46 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_scope_maps"></a> [scope\_maps](#input\_scope\_maps)
+
+Description: A map of scope maps to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - The name of the scope map.
+- `actions` - A list of actions that this scope map can perform. Example: "repo/content/read", "repo2/content/delete"
+- `description` - The description of the scope map.
+- `registry_tokens` - A map of Azure Container Registry token associated to a scope map. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+  - `name` - Specifies the name of the token.
+  - `enabled` - Should the Container Registry token be enabled? Defaults to true.
+  - `passwords` - The passwords of the token. The first password is required, the second password is optional.
+    - `password1` - The first password of the token.
+      - `expiry` - The expiry date of the first password. If not specified, the password will not expire.
+    - `password2` - The second password of the token.
+      - `expiry` - The expiry date of the second password. If not specified, the password will not expire.
+
+Type:
+
+```hcl
+map(object({
+    name        = string
+    actions     = list(string)
+    description = optional(string, null)
+    registry_tokens = optional(map(object({
+      name    = string
+      enabled = optional(bool, true)
+      passwords = optional(object({
+        password1 = object({
+          expiry = optional(string)
+        })
+        password2 = optional(object({
+          expiry = optional(string)
+        }))
+      }))
+    })))
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_sku"></a> [sku](#input\_sku)
 
 Description: The SKU name of the Container Registry. Default is `Premium`. `Possible values are `Basic`, `Standard` and `Premium`.`
@@ -444,13 +484,32 @@ Description: This is the full output for the resource.
 
 Description: The resource id for the parent resource.
 
+### <a name="output_scope_maps"></a> [scope\_maps](#output\_scope\_maps)
+
+Description: A map of scope maps. The map key is the supplied input to var.scope\_maps. The map value is the entire scope map module.
+
+The scope map module contains the following outputs:
+- `id` - The ID of the Container Registry Scope Map.
+- `registry_tokens` - The registry token object.
+  - `id` - The ID of the Container Registry token.
+  - `registry_token_passwords` - The registry token password object.
+    - `id` - The ID of the Container Registry token password.
+    - `password1` - The first password object of the token.
+    - `password2` - The second password object of the token.
+
 ### <a name="output_system_assigned_mi_principal_id"></a> [system\_assigned\_mi\_principal\_id](#output\_system\_assigned\_mi\_principal\_id)
 
 Description: The system assigned managed identity principal ID of the parent resource.
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_scope_maps"></a> [scope\_maps](#module\_scope\_maps)
+
+Source: ./modules/scope-map
+
+Version:
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
