@@ -1,42 +1,7 @@
-variable "sku" {
-  type    = string
-  default = "Premium"
-  validation {
-    condition     = contains(["Basic", "Standard", "Premium"], var.sku)
-    error_message = "The SKU name must be either `Basic`, `Standard` or `Premium`."
-  }
-  description = "The SKU name of the Container Registry. Default is `Premium`. `Possible values are `Basic`, `Standard` and `Premium`."
-}
-
 variable "admin_enabled" {
   type        = bool
   default     = false
   description = "Specifies whether the admin user is enabled. Defaults to `false`."
-}
-
-variable "public_network_access_enabled" {
-  type        = bool
-  default     = true
-  description = "Specifies whether public access is permitted."
-}
-
-
-variable "quarantine_policy_enabled" {
-  type        = bool
-  default     = false
-  description = "Specifies whether the quarantine policy is enabled."
-}
-
-variable "zone_redundancy_enabled" {
-  type        = bool
-  default     = true
-  description = "Specifies whether zone redundancy is enabled.  Modifying this forces a new resource to be created."
-}
-
-variable "export_policy_enabled" {
-  type        = bool
-  default     = true
-  description = "Specifies whether export policy is enabled. Defaults to true. In order to set it to false, make sure the public_network_access_enabled is also set to false."
 }
 
 variable "anonymous_pull_enabled" {
@@ -51,17 +16,10 @@ variable "data_endpoint_enabled" {
   description = "Specifies whether to enable dedicated data endpoints for this Container Registry.  Requires Premium SKU."
 }
 
-variable "network_rule_bypass_option" {
-  type    = string
-  default = "None"
-  validation {
-    condition     = var.network_rule_bypass_option == null ? true : contains(["AzureServices", "None"], var.network_rule_bypass_option)
-    error_message = "The network_rule_bypass_option variable must be either `AzureServices` or `None`."
-  }
-  description = <<DESCRIPTION
-Specifies whether to allow trusted Azure services access to a network restricted Container Registry.
-Possible values are `None` and `AzureServices`. Defaults to `None`.
-DESCRIPTION
+variable "export_policy_enabled" {
+  type        = bool
+  default     = true
+  description = "Specifies whether export policy is enabled. Defaults to true. In order to set it to false, make sure the public_network_access_enabled is also set to false."
 }
 
 variable "georeplications" {
@@ -83,6 +41,20 @@ A list of geo-replication configurations for the Container Registry.
 DESCRIPTION
 }
 
+variable "network_rule_bypass_option" {
+  type        = string
+  default     = "None"
+  description = <<DESCRIPTION
+Specifies whether to allow trusted Azure services access to a network restricted Container Registry.
+Possible values are `None` and `AzureServices`. Defaults to `None`.
+DESCRIPTION
+
+  validation {
+    condition     = var.network_rule_bypass_option == null ? true : contains(["AzureServices", "None"], var.network_rule_bypass_option)
+    error_message = "The network_rule_bypass_option variable must be either `AzureServices` or `None`."
+  }
+}
+
 variable "network_rule_set" {
   type = object({
     default_action = optional(string, "Deny")
@@ -92,11 +64,7 @@ variable "network_rule_set" {
       ip_range = string
     })), [])
   })
-  default = null
-  validation {
-    condition     = var.network_rule_set == null ? true : contains(["Allow", "Deny"], var.network_rule_set.default_action)
-    error_message = "The default_action value must be either `Allow` or `Deny`."
-  }
+  default     = null
   description = <<DESCRIPTION
 The network rule set configuration for the Container Registry.
 Requires Premium SKU.
@@ -107,6 +75,23 @@ Requires Premium SKU.
   - `ip_range` - The CIDR block from which requests will match the rule.
 
 DESCRIPTION
+
+  validation {
+    condition     = var.network_rule_set == null ? true : contains(["Allow", "Deny"], var.network_rule_set.default_action)
+    error_message = "The default_action value must be either `Allow` or `Deny`."
+  }
+}
+
+variable "public_network_access_enabled" {
+  type        = bool
+  default     = true
+  description = "Specifies whether public access is permitted."
+}
+
+variable "quarantine_policy_enabled" {
+  type        = bool
+  default     = false
+  description = "Specifies whether the quarantine policy is enabled."
 }
 
 variable "retention_policy_in_days" {
@@ -118,4 +103,21 @@ If enabled, this retention policy will purge an untagged manifest after a specif
 - `days` - (Optional) The number of days before the policy Defaults to 7 days.
 
 DESCRIPTION
+}
+
+variable "sku" {
+  type        = string
+  default     = "Premium"
+  description = "The SKU name of the Container Registry. Default is `Premium`. `Possible values are `Basic`, `Standard` and `Premium`."
+
+  validation {
+    condition     = contains(["Basic", "Standard", "Premium"], var.sku)
+    error_message = "The SKU name must be either `Basic`, `Standard` or `Premium`."
+  }
+}
+
+variable "zone_redundancy_enabled" {
+  type        = bool
+  default     = true
+  description = "Specifies whether zone redundancy is enabled.  Modifying this forces a new resource to be created."
 }
