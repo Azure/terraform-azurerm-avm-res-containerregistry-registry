@@ -6,6 +6,7 @@ This deploys the Container Registry module with a private endpoint connection.
 ```hcl
 terraform {
   required_version = "~> 1.6"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -37,10 +38,10 @@ resource "azurerm_resource_group" "this" {
 
 # A vnet is required for the private endpoint.
 resource "azurerm_virtual_network" "this" {
-  address_space       = ["192.168.0.0/24"]
   location            = azurerm_resource_group.this.location
   name                = module.naming.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  address_space       = ["192.168.0.0/24"]
 }
 
 resource "azurerm_subnet" "this" {
@@ -58,17 +59,18 @@ resource "azurerm_private_dns_zone" "this" {
 # This is the module call
 module "containerregistry" {
   source = "../../"
+
+  location = azurerm_resource_group.this.location
   # source             = "Azure/avm-containerregistry-registry/azurerm"
-  name                          = module.naming.container_registry.name_unique
-  location                      = azurerm_resource_group.this.location
-  resource_group_name           = azurerm_resource_group.this.name
-  public_network_access_enabled = false
+  name                = module.naming.container_registry.name_unique
+  resource_group_name = azurerm_resource_group.this.name
   private_endpoints = {
     primary = {
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.this.id]
       subnet_resource_id            = azurerm_subnet.this.id
     }
   }
+  public_network_access_enabled = false
 }
 ```
 
