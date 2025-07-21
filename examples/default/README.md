@@ -6,6 +6,7 @@ This deploys the Container Registry module using default settings.
 ```hcl
 terraform {
   required_version = "~> 1.6"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -38,10 +39,11 @@ resource "azurerm_resource_group" "this" {
 # This is the module call
 module "containerregistry" {
   source = "../../"
+
+  location = azurerm_resource_group.this.location
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
 }
 ```
 

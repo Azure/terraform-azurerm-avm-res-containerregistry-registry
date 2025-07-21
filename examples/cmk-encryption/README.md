@@ -6,6 +6,7 @@ This deploys the Container Registry module with customer-managed-key encryption
 ```hcl
 terraform {
   required_version = "~> 1.6"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -122,22 +123,21 @@ resource "azurerm_key_vault_key" "key" {
 # This is the module call
 module "containerregistry" {
   source = "../../"
+
+  location = azurerm_resource_group.this.location
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-
-  managed_identities = {
-    system_assigned            = true
-    user_assigned_resource_ids = toset([azurerm_user_assigned_identity.this.id])
-  }
-
   customer_managed_key = {
     key_vault_resource_id = azurerm_key_vault.this.id
     key_name              = azurerm_key_vault_key.key.name
     user_assigned_identity = {
       resource_id = azurerm_user_assigned_identity.this.id
     }
+  }
+  managed_identities = {
+    system_assigned            = true
+    user_assigned_resource_ids = toset([azurerm_user_assigned_identity.this.id])
   }
 }
 ```
