@@ -87,7 +87,7 @@ Default: `false`
 
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
-Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.  
+Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 Controls the Customer managed key configuration on this resource. The following properties can be specified:
 - `key_vault_resource_id` - (Required) Resource ID of the Key Vault that the customer managed key belongs to.
 - `key_name` - (Required) Specifies the name of the Customer Managed Key Vault Key.
@@ -154,8 +154,8 @@ Default: `{}`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.  
-For more information see <https://aka.ms/avm/telemetryinfo>.  
+Description: This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
 If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
@@ -238,7 +238,7 @@ Default: `{}`
 
 ### <a name="input_network_rule_bypass_option"></a> [network\_rule\_bypass\_option](#input\_network\_rule\_bypass\_option)
 
-Description: Specifies whether to allow trusted Azure services access to a network restricted Container Registry.  
+Description: Specifies whether to allow trusted Azure services access to a network restricted Container Registry.
 Possible values are `None` and `AzureServices`. Defaults to `None`.
 
 Type: `string`
@@ -247,7 +247,7 @@ Default: `"None"`
 
 ### <a name="input_network_rule_set"></a> [network\_rule\_set](#input\_network\_rule\_set)
 
-Description: The network rule set configuration for the Container Registry.  
+Description: The network rule set configuration for the Container Registry.
 Requires Premium SKU.
 
 - `default_action` - (Optional) The default action when no rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
@@ -398,6 +398,46 @@ map(object({
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
     principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_scope_maps"></a> [scope\_maps](#input\_scope\_maps)
+
+Description: A map of scope maps to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - The name of the scope map.
+- `actions` - A list of actions that this scope map can perform. Example: "repo/content/read", "repo2/content/delete"
+- `description` - The description of the scope map.
+- `registry_tokens` - A map of Azure Container Registry token associated to a scope map. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+  - `name` - Specifies the name of the token.
+  - `enabled` - Should the Container Registry token be enabled? Defaults to true.
+  - `passwords` - The passwords of the token. The first password is required, the second password is optional.
+    - `password1` - The first password of the token.
+      - `expiry` - The expiry date of the first password. If not specified, the password will not expire.
+    - `password2` - The second password of the token.
+      - `expiry` - The expiry date of the second password. If not specified, the password will not expire.
+
+Type:
+
+```hcl
+map(object({
+    name        = string
+    actions     = list(string)
+    description = optional(string, null)
+    registry_tokens = optional(map(object({
+      name    = string
+      enabled = optional(bool, true)
+      passwords = optional(object({
+        password1 = object({
+          expiry = optional(string)
+        })
+        password2 = optional(object({
+          expiry = optional(string)
+        }))
+      }))
+    })))
   }))
 ```
 

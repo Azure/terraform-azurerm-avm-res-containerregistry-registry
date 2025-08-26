@@ -1,0 +1,126 @@
+<!-- BEGIN_TF_DOCS -->
+# terraform-azurerm-avm-res-containerregistry-registry//scope-map
+
+Module to deploy container registry scope map with registry tokens(optional) and registry token passwords(optional) in Azure.
+
+```hcl
+resource "azurerm_container_registry_scope_map" "this" {
+  actions                 = var.actions
+  container_registry_name = var.container_registry_name
+  name                    = var.name
+  resource_group_name     = var.resource_group_name
+  description             = var.description
+}
+```
+
+<!-- markdownlint-disable MD033 -->
+## Requirements
+
+The following requirements are needed by this module:
+
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.3.0)
+
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4, < 5.0.0)
+
+## Resources
+
+The following resources are used by this module:
+
+- [azurerm_container_registry_scope_map.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry_scope_map) (resource)
+- [azurerm_container_registry_token.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry_token) (resource)
+- [azurerm_container_registry_token_password.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry_token_password) (resource)
+
+<!-- markdownlint-disable MD013 -->
+## Required Inputs
+
+The following input variables are required:
+
+### <a name="input_actions"></a> [actions](#input\_actions)
+
+Description: List of actions to attach to the scope map.
+
+Type: `list(string)`
+
+### <a name="input_container_registry_name"></a> [container\_registry\_name](#input\_container\_registry\_name)
+
+Description: The name of the Container Registry.
+
+Type: `string`
+
+### <a name="input_description"></a> [description](#input\_description)
+
+Description: The description of the Container Registry.
+
+Type: `string`
+
+### <a name="input_name"></a> [name](#input\_name)
+
+Description: The name of the scope map.
+
+Type: `string`
+
+### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
+
+Description: The name of the resource group in which to create the Container Registry scope and token(if variable registry\_tokens is defined).
+
+Type: `string`
+
+## Optional Inputs
+
+The following input variables are optional (have default values):
+
+### <a name="input_registry_tokens"></a> [registry\_tokens](#input\_registry\_tokens)
+
+Description: A map of Azure Container Registry token associated to a scope map. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - Specifies the name of the token.
+- `enabled` - Should the Container Registry token be enabled? Defaults to true."
+
+Type:
+
+```hcl
+map(object({
+    name    = string
+    enabled = optional(bool, true)
+    passwords = optional(object({
+      password1 = object({
+        expiry = optional(string)
+      })
+      password2 = optional(object({
+        expiry = optional(string)
+      }))
+    }))
+  }))
+```
+
+Default: `{}`
+
+## Outputs
+
+The following outputs are exported:
+
+### <a name="output_id"></a> [id](#output\_id)
+
+Description: The ID of the Container Registry Scope Map.
+
+### <a name="output_registry_token_passwords"></a> [registry\_token\_passwords](#output\_registry\_token\_passwords)
+
+Description: The registry token password object.
+
+### <a name="output_registry_tokens"></a> [registry\_tokens](#output\_registry\_tokens)
+
+Description: The registry token object.
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: The resource ID of the Container Registry Scope Map.
+
+## Modules
+
+No modules.
+
+<!-- markdownlint-disable-next-line MD041 -->
+## Data Collection
+
+The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+<!-- END_TF_DOCS -->
