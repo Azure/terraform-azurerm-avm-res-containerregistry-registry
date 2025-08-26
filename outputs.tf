@@ -26,3 +26,18 @@ output "system_assigned_mi_principal_id" {
   description = "The system assigned managed identity principal ID of the parent resource."
   value       = try(azurerm_container_registry.this.identity[0].principal_id, null)
 }
+
+output "scope_maps" {
+  description = <<DESCRIPTION
+A map of scope maps. The map key is the supplied input to var.scope_maps. The map value is the entire scope map module.
+The scope map module contains the following outputs:
+- `id` - The ID of the Container Registry Scope Map.
+- `registry_tokens` - The registry token object.
+  - `id` - The ID of the Container Registry token.
+  - `registry_token_passwords` - The registry token password object.
+    - `id` - The ID of the Container Registry token password.
+    - `password1` - The first password object of the token.
+    - `password2` - The second password object of the token.
+DESCRIPTION
+  value       = module.scope_maps
+}
