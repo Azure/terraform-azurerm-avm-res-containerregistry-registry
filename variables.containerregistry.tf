@@ -121,3 +121,38 @@ variable "zone_redundancy_enabled" {
   default     = true
   description = "Specifies whether zone redundancy is enabled.  Modifying this forces a new resource to be created."
 }
+
+variable "scope_maps" {
+  type = map(object({
+    name        = string
+    actions     = list(string)
+    description = optional(string, null)
+    registry_tokens = optional(map(object({
+      name    = string
+      enabled = optional(bool, true)
+      passwords = optional(object({
+        password1 = object({
+          expiry = optional(string)
+        })
+        password2 = optional(object({
+          expiry = optional(string)
+        }))
+      }))
+    })))
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of scope maps to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+- `name` - The name of the scope map.
+- `actions` - A list of actions that this scope map can perform. Example: "repo/content/read", "repo2/content/delete"
+- `description` - The description of the scope map.
+- `registry_tokens` - A map of Azure Container Registry token associated to a scope map. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+  - `name` - Specifies the name of the token.
+  - `enabled` - Should the Container Registry token be enabled? Defaults to true.
+  - `passwords` - The passwords of the token. The first password is required, the second password is optional.
+    - `password1` - The first password of the token.
+      - `expiry` - The expiry date of the first password. If not specified, the password will not expire.
+    - `password2` - The second password of the token.
+      - `expiry` - The expiry date of the second password. If not specified, the password will not expire.
+DESCRIPTION
+}
