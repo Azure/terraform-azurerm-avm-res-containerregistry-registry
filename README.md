@@ -87,7 +87,7 @@ Default: `false`
 
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
-Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.  
 Controls the Customer managed key configuration on this resource. The following properties can be specified:
 - `key_vault_resource_id` - (Required) Resource ID of the Key Vault that the customer managed key belongs to.
 - `key_name` - (Required) Specifies the name of the Customer Managed Key Vault Key.
@@ -154,8 +154,8 @@ Default: `{}`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
 If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
@@ -238,7 +238,7 @@ Default: `{}`
 
 ### <a name="input_network_rule_bypass_option"></a> [network\_rule\_bypass\_option](#input\_network\_rule\_bypass\_option)
 
-Description: Specifies whether to allow trusted Azure services access to a network restricted Container Registry.
+Description: Specifies whether to allow trusted Azure services access to a network restricted Container Registry.  
 Possible values are `None` and `AzureServices`. Defaults to `None`.
 
 Type: `string`
@@ -247,7 +247,7 @@ Default: `"None"`
 
 ### <a name="input_network_rule_set"></a> [network\_rule\_set](#input\_network\_rule\_set)
 
-Description: The network rule set configuration for the Container Registry.
+Description: The network rule set configuration for the Container Registry.  
 Requires Premium SKU.
 
 - `default_action` - (Optional) The default action when no rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
@@ -406,7 +406,6 @@ Default: `{}`
 ### <a name="input_scope_maps"></a> [scope\_maps](#input\_scope\_maps)
 
 Description: A map of scope maps to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
 - `name` - The name of the scope map.
 - `actions` - A list of actions that this scope map can perform. Example: "repo/content/read", "repo2/content/delete"
 - `description` - The description of the scope map.
@@ -487,13 +486,31 @@ Description: This is the full output for the resource.
 
 Description: The resource id for the parent resource.
 
+### <a name="output_scope_maps"></a> [scope\_maps](#output\_scope\_maps)
+
+Description: A map of scope maps. The map key is the supplied input to var.scope\_maps. The map value is the entire scope map module.  
+The scope map module contains the following outputs:
+- `id` - The ID of the Container Registry Scope Map.
+- `registry_tokens` - The registry token object.
+  - `id` - The ID of the Container Registry token.
+  - `registry_token_passwords` - The registry token password object.
+    - `id` - The ID of the Container Registry token password.
+    - `password1` - The first password object of the token.
+    - `password2` - The second password object of the token.
+
 ### <a name="output_system_assigned_mi_principal_id"></a> [system\_assigned\_mi\_principal\_id](#output\_system\_assigned\_mi\_principal\_id)
 
 Description: The system assigned managed identity principal ID of the parent resource.
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_scope_maps"></a> [scope\_maps](#module\_scope\_maps)
+
+Source: ./modules/scope-map
+
+Version:
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
