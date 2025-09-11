@@ -22,11 +22,6 @@ output "resource_id" {
   value       = azurerm_container_registry.this.id
 }
 
-output "system_assigned_mi_principal_id" {
-  description = "The system assigned managed identity principal ID of the parent resource."
-  value       = try(azurerm_container_registry.this.identity[0].principal_id, null)
-}
-
 output "scope_maps" {
   description = <<DESCRIPTION
 A map of scope maps. The map key is the supplied input to var.scope_maps. The map value is the entire scope map module.
@@ -40,4 +35,9 @@ The scope map module contains the following outputs:
     - `password2` - The second password object of the token.
 DESCRIPTION
   value       = module.scope_maps
+}
+
+output "system_assigned_mi_principal_id" {
+  description = "The system assigned managed identity principal ID of the parent resource."
+  value       = try(azurerm_container_registry.this.identity[0].principal_id, null)
 }

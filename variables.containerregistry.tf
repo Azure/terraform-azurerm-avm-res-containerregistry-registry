@@ -105,23 +105,6 @@ If enabled, this retention policy will purge an untagged manifest after a specif
 DESCRIPTION
 }
 
-variable "sku" {
-  type        = string
-  default     = "Premium"
-  description = "The SKU name of the Container Registry. Default is `Premium`. `Possible values are `Basic`, `Standard` and `Premium`."
-
-  validation {
-    condition     = contains(["Basic", "Standard", "Premium"], var.sku)
-    error_message = "The SKU name must be either `Basic`, `Standard` or `Premium`."
-  }
-}
-
-variable "zone_redundancy_enabled" {
-  type        = bool
-  default     = true
-  description = "Specifies whether zone redundancy is enabled.  Modifying this forces a new resource to be created."
-}
-
 variable "scope_maps" {
   type = map(object({
     name        = string
@@ -155,4 +138,21 @@ A map of scope maps to create on the Container Registry. The map key is delibera
     - `password2` - The second password of the token.
       - `expiry` - The expiry date of the second password. If not specified, the password will not expire.
 DESCRIPTION
+}
+
+variable "sku" {
+  type        = string
+  default     = "Premium"
+  description = "The SKU name of the Container Registry. Default is `Premium`. `Possible values are `Basic`, `Standard` and `Premium`."
+
+  validation {
+    condition     = contains(["Basic", "Standard", "Premium"], var.sku)
+    error_message = "The SKU name must be either `Basic`, `Standard` or `Premium`."
+  }
+}
+
+variable "zone_redundancy_enabled" {
+  type        = bool
+  default     = true
+  description = "Specifies whether zone redundancy is enabled.  Modifying this forces a new resource to be created."
 }
