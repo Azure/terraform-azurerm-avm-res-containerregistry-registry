@@ -13,6 +13,7 @@ output "private_endpoints" {
 output "resource" {
   description = "This is the full output for the resource."
   value       = azurerm_container_registry.this
+  sensitive   = true
 }
 
 # Minimum required outputs
