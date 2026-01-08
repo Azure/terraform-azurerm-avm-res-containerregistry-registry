@@ -85,6 +85,39 @@ Type: `bool`
 
 Default: `false`
 
+### <a name="input_cache_rules"></a> [cache\_rules](#input\_cache\_rules)
+
+Description: A map of cache rules to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.  
+Cache rules allow you to cache container images from public registries (e.g., Docker Hub, MCR) in your Azure Container Registry for faster and more reliable access.  
+Requires Premium SKU.
+
+- `name` - (Required) The name of the cache rule.
+- `source_repository` - (Required) The source repository path to cache from (e.g., 'library/hello-world' for Docker Hub, 'mcr.microsoft.com/dotnet/aspnet' for MCR).
+- `target_repository` - (Required) The target repository path in your registry where the cached image will be stored.
+- `credential_set` - (Optional) Credential set configuration for authenticated pulls from the source registry. Required for Docker Hub due to rate limits. Not required for public registries like MCR.
+  - `name` - (Required) The name of the credential set.
+  - `login_server` - (Required) The external registry login server (e.g., 'docker.io' for Docker Hub).
+  - `username_secret_id` - (Required) The Key Vault secret ID containing the username.
+  - `password_secret_id` - (Required) The Key Vault secret ID containing the password.
+
+Type:
+
+```hcl
+map(object({
+    name              = string
+    source_repository = string
+    target_repository = string
+    credential_set = optional(object({
+      name               = string
+      login_server       = string
+      username_secret_id = string
+      password_secret_id = string
+    }), null)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
 Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.  
@@ -470,6 +503,13 @@ Default: `true`
 
 The following outputs are exported:
 
+### <a name="output_cache_rules"></a> [cache\_rules](#output\_cache\_rules)
+
+Description: A map of cache rules. The map key is the supplied input to var.cache\_rules. The map value is the entire cache rule module.  
+The cache rule module contains the following outputs:
+- `id` - The ID of the Container Registry Cache Rule.
+- `resource_id` - The resource ID of the Container Registry Cache Rule.
+
 ### <a name="output_name"></a> [name](#output\_name)
 
 Description: The name of the parent resource.
@@ -505,6 +545,12 @@ Description: The system assigned managed identity principal ID of the parent res
 ## Modules
 
 The following Modules are called:
+
+### <a name="module_cache_rules"></a> [cache\_rules](#module\_cache\_rules)
+
+Source: ./modules/cache-rule
+
+Version:
 
 ### <a name="module_scope_maps"></a> [scope\_maps](#module\_scope\_maps)
 

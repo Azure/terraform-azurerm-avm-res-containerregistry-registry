@@ -1,3 +1,13 @@
+output "cache_rules" {
+  description = <<DESCRIPTION
+A map of cache rules. The map key is the supplied input to var.cache_rules. The map value is the entire cache rule module.
+The cache rule module contains the following outputs:
+- `id` - The ID of the Container Registry Cache Rule.
+- `resource_id` - The resource ID of the Container Registry Cache Rule.
+DESCRIPTION
+  value       = module.cache_rules
+}
+
 output "name" {
   description = "The name of the parent resource."
   value       = azurerm_container_registry.this.name
