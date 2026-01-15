@@ -24,7 +24,7 @@ variable "customer_managed_key" {
   type = object({
     key_vault_resource_id = string
     key_name              = string
-    key_version           = optional(string, null)
+    use_versionless_key   = optional(bool, false)
     user_assigned_identity = optional(object({
       resource_id = string
     }), null)
@@ -35,7 +35,7 @@ A map of diagnostic settings to create on the Key Vault. The map key is delibera
 Controls the Customer managed key configuration on this resource. The following properties can be specified:
 - `key_vault_resource_id` - (Required) Resource ID of the Key Vault that the customer managed key belongs to.
 - `key_name` - (Required) Specifies the name of the Customer Managed Key Vault Key.
-- `key_version` - (Optional) The version of the Customer Managed Key Vault Key.
+- `use_versionless_key` - (Optional) Whether to use the versionless Customer Managed Key Vault Key.
 - `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key.
   - `resource_id` - (Required) The resource ID of the User Assigned Identity that has access to the key.
 DESCRIPTION
@@ -57,7 +57,7 @@ variable "diagnostic_settings" {
   default     = {}
   description = <<DESCRIPTION
   A map of diagnostic settings to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-  
+
   - `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
   - `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
   - `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.

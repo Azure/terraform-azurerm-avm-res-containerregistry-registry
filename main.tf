@@ -20,7 +20,7 @@ resource "azurerm_container_registry" "this" {
 
     content {
       identity_client_id = data.azurerm_user_assigned_identity.this[0].client_id
-      key_vault_key_id   = data.azurerm_key_vault_key.this[0].id
+      key_vault_key_id   = var.customer_managed_key.use_versionless_key ? data.azurerm_key_vault_key.this[0].versionless_id : data.azurerm_key_vault_key.this[0].id
     }
   }
   dynamic "georeplications" {
