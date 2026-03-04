@@ -1,3 +1,8 @@
+output "agent_pools" {
+  description = "A map of agent pools. The map key is the supplied input to var.agent_pools. The map value is the entire azurerm_container_registry_agent_pool resource."
+  value       = azurerm_container_registry_agent_pool.this
+}
+
 output "name" {
   description = "The name of the parent resource."
   value       = azurerm_container_registry.this.name

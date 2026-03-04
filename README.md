@@ -29,6 +29,7 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [azurerm_container_registry.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry) (resource)
+- [azurerm_container_registry_agent_pool.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry_agent_pool) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
@@ -76,6 +77,32 @@ Description: Specifies whether the admin user is enabled. Defaults to `false`.
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_agent_pools"></a> [agent\_pools](#input\_agent\_pools)
+
+Description: A map of agent pools to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Required) The name of the agent pool. Must be between 3 and 20 characters long and can only contain letters and numbers.
+- `location` - (Optional) The Azure location where the agent pool will be deployed. Defaults to the location of the Container Registry.
+- `instance_count` - (Optional) The number of agent instances to use.
+- `tier` - (Optional) The tier of the agent pool. Possible values are `S1`, `S2`, `S3`, and `I6`.
+- `virtual_network_subnet_id` - (Optional) The subnet resource ID to use for network isolation.
+- `tags` - (Optional) A mapping of tags to assign to the agent pool.
+
+Type:
+
+```hcl
+map(object({
+    name                      = string
+    location                  = optional(string, null)
+    instance_count            = optional(number, null)
+    tier                      = optional(string, null)
+    virtual_network_subnet_id = optional(string, null)
+    tags                      = optional(map(string), null)
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_anonymous_pull_enabled"></a> [anonymous\_pull\_enabled](#input\_anonymous\_pull\_enabled)
 
@@ -469,6 +496,10 @@ Default: `true`
 ## Outputs
 
 The following outputs are exported:
+
+### <a name="output_agent_pools"></a> [agent\_pools](#output\_agent\_pools)
+
+Description: A map of agent pools. The map key is the supplied input to var.agent\_pools. The map value is the entire azurerm\_container\_registry\_agent\_pool resource.
 
 ### <a name="output_name"></a> [name](#output\_name)
 

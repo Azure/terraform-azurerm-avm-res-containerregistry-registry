@@ -4,6 +4,41 @@ variable "admin_enabled" {
   description = "Specifies whether the admin user is enabled. Defaults to `false`."
 }
 
+variable "agent_pools" {
+  type = map(object({
+    name                      = string
+    location                  = optional(string, null)
+    instance_count            = optional(number, null)
+    tier                      = optional(string, null)
+    virtual_network_subnet_id = optional(string, null)
+    tags                      = optional(map(string), null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of agent pools to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Required) The name of the agent pool. Must be between 3 and 20 characters long and can only contain letters and numbers.
+- `location` - (Optional) The Azure location where the agent pool will be deployed. Defaults to the location of the Container Registry.
+- `instance_count` - (Optional) The number of agent instances to use.
+- `tier` - (Optional) The tier of the agent pool. Possible values are `S1`, `S2`, `S3`, and `I6`.
+- `virtual_network_subnet_id` - (Optional) The subnet resource ID to use for network isolation.
+- `tags` - (Optional) A mapping of tags to assign to the agent pool.
+DESCRIPTION
+
+  validation {
+    condition     = alltrue([for _, v in var.agent_pools : can(regex("^[[:alnum:]]{3,20}$", v.name))])
+    error_message = "Each agent pool `name` must be between 3 and 20 characters long and contain only letters and numbers."
+  }
+  validation {
+    condition     = alltrue([for _, v in var.agent_pools : v.tier == null ? true : contains(["S1", "S2", "S3", "I6"], v.tier)])
+    error_message = "Each agent pool `tier` must be one of `S1`, `S2`, `S3`, or `I6`."
+  }
+  validation {
+    condition     = alltrue([for _, v in var.agent_pools : v.instance_count == null ? true : v.instance_count >= 1])
+    error_message = "Each agent pool `instance_count` must be greater than or equal to 1 when specified."
+  }
+}
+
 variable "anonymous_pull_enabled" {
   type        = bool
   default     = false
