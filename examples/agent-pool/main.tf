@@ -54,17 +54,6 @@ resource "azurerm_subnet" "this" {
   name                 = module.naming.subnet.name_unique
   resource_group_name  = azurerm_resource_group.this.name
   virtual_network_name = azurerm_virtual_network.this.name
-
-  delegation {
-    name = "acr-agentpool-delegation"
-
-    service_delegation {
-      name = "Microsoft.ContainerRegistry/registries/agentPools"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action"
-      ]
-    }
-  }
 }
 
 # This is the module call

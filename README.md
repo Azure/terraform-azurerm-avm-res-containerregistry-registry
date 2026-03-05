@@ -485,6 +485,148 @@ Type: `map(string)`
 
 Default: `null`
 
+### <a name="input_tasks"></a> [tasks](#input\_tasks)
+
+Description: A map of Container Registry tasks to create. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Required) The name of the task.
+- `agent_pool_name` - (Optional) The name of the dedicated agent pool for this task.
+- `agent_setting` - (Optional) Agent settings for this task.
+  - `cpu` - (Required) The number of cores required for the task. Supported value is `2`.
+- `enabled` - (Optional) Should this task be enabled. Defaults to `true`.
+- `is_system_task` - (Optional) Whether this is a system task. Defaults to `false`.
+- `log_template` - (Optional) The template that describes the run log artifact.
+- `timeout_in_seconds` - (Optional) Timeout in seconds for task runs. Valid range is `300` to `28800`.
+- `identity` - (Optional) Managed identity settings for the task.
+- `platform` - (Optional) Platform settings for the task. Required for non-system tasks.
+- `docker_step` / `encoded_step` / `file_step` - (Optional) One and only one step block must be defined for non-system tasks.
+- `base_image_trigger` - (Optional) Base image trigger configuration.
+- `source_triggers` - (Optional) A map of source triggers.
+- `timer_triggers` - (Optional) A map of timer triggers.
+- `registry_credential` - (Optional) Registry credential settings.
+- `tags` - (Optional) A mapping of tags to assign to the task.
+- `schedule_run_now` - (Optional) Single-shot run-now configuration.
+  - `enabled` - (Optional) If true, triggers an immediate schedule run when created or replaced.
+
+Type:
+
+```hcl
+map(object({
+    name               = string
+    agent_pool_name    = optional(string, null)
+    enabled            = optional(bool, true)
+    is_system_task     = optional(bool, false)
+    log_template       = optional(string, null)
+    tags               = optional(map(string), null)
+    timeout_in_seconds = optional(number, null)
+
+    agent_setting = optional(object({
+      cpu = number
+    }), null)
+
+    identity = optional(object({
+      type         = string
+      identity_ids = optional(set(string), [])
+    }), null)
+
+    platform = optional(object({
+      os           = string
+      architecture = optional(string, null)
+      variant      = optional(string, null)
+    }), null)
+
+    docker_step = optional(object({
+      context_access_token = string
+      context_path         = string
+      dockerfile_path      = string
+      arguments            = optional(map(string), null)
+      image_names          = optional(list(string), null)
+      cache_enabled        = optional(bool, null)
+      push_enabled         = optional(bool, null)
+      secret_arguments     = optional(map(string), null)
+      target               = optional(string, null)
+    }), null)
+
+    encoded_step = optional(object({
+      task_content         = string
+      context_access_token = optional(string, null)
+      context_path         = optional(string, null)
+      secret_values        = optional(map(string), null)
+      value_content        = optional(string, null)
+      values               = optional(map(string), null)
+    }), null)
+
+    file_step = optional(object({
+      task_file_path       = string
+      context_access_token = optional(string, null)
+      context_path         = optional(string, null)
+      secret_values        = optional(map(string), null)
+      value_file_path      = optional(string, null)
+      values               = optional(map(string), null)
+    }), null)
+
+    base_image_trigger = optional(object({
+      name                        = string
+      type                        = string
+      enabled                     = optional(bool, true)
+      update_trigger_endpoint     = optional(string, null)
+      update_trigger_payload_type = optional(string, null)
+    }), null)
+
+    source_triggers = optional(map(object({
+      name           = string
+      events         = set(string)
+      repository_url = string
+      source_type    = string
+      branch         = optional(string, null)
+      enabled        = optional(bool, true)
+      authentication = optional(object({
+        token             = string
+        token_type        = string
+        expire_in_seconds = optional(number, null)
+        refresh_token     = optional(string, null)
+        scope             = optional(string, null)
+      }), null)
+    })), {})
+
+    timer_triggers = optional(map(object({
+      name     = string
+      schedule = string
+      enabled  = optional(bool, true)
+    })), {})
+
+    registry_credential = optional(object({
+      source = optional(object({
+        login_mode = string
+      }), null)
+      custom = optional(map(object({
+        login_server = string
+        identity     = optional(string, null)
+        username     = optional(string, null)
+        password     = optional(string, null)
+      })), {})
+    }), null)
+
+    timeouts = optional(object({
+      create = optional(string, null)
+      read   = optional(string, null)
+      update = optional(string, null)
+      delete = optional(string, null)
+    }), null)
+
+    schedule_run_now = optional(object({
+      enabled = optional(bool, false)
+      timeouts = optional(object({
+        create = optional(string, null)
+        read   = optional(string, null)
+        delete = optional(string, null)
+      }), null)
+    }), null)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_zone_redundancy_enabled"></a> [zone\_redundancy\_enabled](#input\_zone\_redundancy\_enabled)
 
 Description: Specifies whether zone redundancy is enabled.  Modifying this forces a new resource to be created.
@@ -533,6 +675,14 @@ The scope map module contains the following outputs:
 
 Description: The system assigned managed identity principal ID of the parent resource.
 
+### <a name="output_tasks"></a> [tasks](#output\_tasks)
+
+Description: A map of tasks. The map key is the supplied input to var.tasks. The map value is the entire task module.  
+The task module contains the following outputs:
+- `resource` - The full task resource output.
+- `resource_id` - The task resource ID.
+- `schedule_run_now` - The schedule run-now resource output when enabled.
+
 ## Modules
 
 The following Modules are called:
@@ -540,6 +690,12 @@ The following Modules are called:
 ### <a name="module_scope_maps"></a> [scope\_maps](#module\_scope\_maps)
 
 Source: ./modules/scope-map
+
+Version:
+
+### <a name="module_tasks"></a> [tasks](#module\_tasks)
+
+Source: ./modules/task
 
 Version:
 
