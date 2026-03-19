@@ -1,3 +1,8 @@
+output "agent_pools" {
+  description = "A map of agent pools. The map key is the supplied input to var.agent_pools. The map value is the entire azurerm_container_registry_agent_pool resource."
+  value       = azurerm_container_registry_agent_pool.this
+}
+
 output "name" {
   description = "The name of the parent resource."
   value       = azurerm_container_registry.this.name
@@ -40,4 +45,15 @@ DESCRIPTION
 output "system_assigned_mi_principal_id" {
   description = "The system assigned managed identity principal ID of the parent resource."
   value       = try(azurerm_container_registry.this.identity[0].principal_id, null)
+}
+
+output "tasks" {
+  description = <<DESCRIPTION
+A map of tasks. The map key is the supplied input to var.tasks. The map value is the entire task module.
+The task module contains the following outputs:
+- `resource` - The full task resource output.
+- `resource_id` - The task resource ID.
+- `schedule_run_now` - The schedule run-now resource output when enabled.
+DESCRIPTION
+  value       = module.tasks
 }
