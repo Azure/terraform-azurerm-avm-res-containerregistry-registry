@@ -95,7 +95,7 @@ module "containerregistry" {
     # Docker Hub cache (with credentials from Key Vault)
     dockerhub_nginx = {
       name              = "dockerhub-nginx-cache"
-      source_repository = "library/nginx"
+      source_repository = "docker.io/library/nginx"
       target_repository = "cached/nginx"
 
       credential_set = {
