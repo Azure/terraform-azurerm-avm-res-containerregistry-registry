@@ -47,45 +47,38 @@ resource "azurerm_resource_group" "this" {
 # Create Key Vault using AVM module to store Docker Hub credentials
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.11.1"
+  version = "0.10.2"
 
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  location            = azurerm_resource_group.this.location
   name                = module.naming.key_vault.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  sku_name            = "standard"
-
+  tenant_id           = data.azurerm_client_config.current.tenant_id
   network_acls = {
     default_action = "Allow"
     bypass         = "AzureServices"
   }
-
   role_assignments = {
-    # Current user needs to be able to create secrets
     deployment_user_secrets = {
       role_definition_id_or_name = "Key Vault Secrets Officer"
       principal_id               = data.azurerm_client_config.current.object_id
     }
   }
-
-  wait_for_rbac_before_secret_operations = {
-    create = "60s"
-  }
-
-  # IMPORTANT: Replace these values with your actual Docker Hub credentials
-  # You can also use environment variables or other secure methods
   secrets = {
     dockerhub_username = {
       name = "dockerhub-username"
-      # REPLACE WITH YOUR DOCKER HUB USERNAME
-      value = "your-dockerhub-username"
     }
     dockerhub_password = {
       name = "dockerhub-password"
-      # REPLACE WITH YOUR DOCKER HUB PASSWORD OR ACCESS TOKEN
-      # It's recommended to use a Docker Hub Access Token instead of your password
-      value = "your-dockerhub-password-or-token"
     }
+  }
+  # IMPORTANT: Replace these values with your actual Docker Hub credentials
+  secrets_value = {
+    dockerhub_username = "your-dockerhub-username"
+    dockerhub_password = "your-dockerhub-password-or-token"
+  }
+  sku_name = "standard"
+  wait_for_rbac_before_secret_operations = {
+    create = "60s"
   }
 }
 
@@ -97,12 +90,6 @@ module "containerregistry" {
   # source             = "Azure/avm-res-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
-
-  # Managed identity is required for the credential set to access Key Vault
-  managed_identities = {
-    system_assigned = true
-  }
-
   # Cache rules for public registries
   cache_rules = {
     # MCR cache (no credentials needed)
@@ -121,31 +108,31 @@ module "containerregistry" {
       credential_set = {
         name               = "dockerhub-credentials"
         login_server       = "docker.io"
-        username_secret_id = module.key_vault.resource_secrets["dockerhub_username"].versionless_id
-        password_secret_id = module.key_vault.resource_secrets["dockerhub_password"].versionless_id
+        username_secret_id = module.key_vault.secrets["dockerhub_username"].versionless_id
+        password_secret_id = module.key_vault.secrets["dockerhub_password"].versionless_id
       }
     }
   }
-
+  # Managed identity is required for the credential set to access Key Vault
+  managed_identities = {
+    system_assigned = true
+  }
   sku = "Premium" # Premium SKU is required for cache rules
 
   depends_on = [module.key_vault]
 }
 
-# Grant the credential set's managed identity access to Key Vault secrets using AVM
-module "credential_set_role_assignment" {
-  source  = "Azure/avm-res-authorization-roleassignment/azurerm"
-  version = "0.4.0"
-
+# Grant the credential set's managed identity access to Key Vault secrets
+resource "azurerm_role_assignment" "credential_set_kv_access" {
   for_each = {
     for k, v in module.containerregistry.cache_rules : k => v
     if v.credential_set != null
   }
 
-  principal_id               = each.value.credential_set.identity[0].principal_id
-  role_definition_id_or_name = "Key Vault Secrets User"
-  scope_resource_id          = module.key_vault.resource_id
-  description                = "Allow credential set ${each.key} to read secrets from Key Vault"
+  principal_id         = each.value.credential_set.identity[0].principal_id
+  scope                = module.key_vault.resource_id
+  description          = "Allow credential set ${each.key} to read secrets from Key Vault"
+  role_definition_name = "Key Vault Secrets User"
 }
 ```
 
@@ -163,6 +150,7 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_role_assignment.credential_set_kv_access](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -188,17 +176,11 @@ Source: ../../
 
 Version:
 
-### <a name="module_credential_set_role_assignment"></a> [credential\_set\_role\_assignment](#module\_credential\_set\_role\_assignment)
-
-Source: Azure/avm-res-authorization-roleassignment/azurerm
-
-Version: 0.4.0
-
 ### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
 
 Source: Azure/avm-res-keyvault-vault/azurerm
 
-Version: 0.11.1
+Version: 0.10.2
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
