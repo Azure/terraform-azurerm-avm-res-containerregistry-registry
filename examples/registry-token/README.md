@@ -37,6 +37,11 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
+locals {
+  expiry_1y = timeadd(plantimestamp(), "8760h")  # ~1 year
+  expiry_2y = timeadd(plantimestamp(), "17520h") # ~2 years
+}
+
 # This is the module call
 module "containerregistry" {
   source = "../../"
@@ -60,7 +65,7 @@ module "containerregistry" {
           enabled = true
           passwords = {
             password1 = {
-              expiry = "2027-12-31T00:00:00Z"
+              expiry = local.expiry_2y
             }
           }
         }
@@ -82,10 +87,10 @@ module "containerregistry" {
           enabled = true
           passwords = {
             password1 = {
-              expiry = "2027-12-31T00:00:00Z"
+              expiry = local.expiry_2y
             }
             password2 = {
-              expiry = "2026-12-31T00:00:00Z"
+              expiry = local.expiry_1y
             }
           }
         }
