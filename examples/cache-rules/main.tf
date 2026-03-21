@@ -117,13 +117,8 @@ module "containerregistry" {
 
 # Grant the credential set's managed identity access to Key Vault secrets
 resource "azurerm_role_assignment" "credential_set_kv_access" {
-  for_each = {
-    for k, v in module.containerregistry.cache_rules : k => v
-    if v.credential_set != null
-  }
-
-  principal_id         = each.value.credential_set.identity[0].principal_id
+  principal_id         = module.containerregistry.cache_rules["dockerhub_nginx"].credential_set.identity[0].principal_id
   scope                = module.key_vault.resource_id
-  description          = "Allow credential set ${each.key} to read secrets from Key Vault"
+  description          = "Allow Docker Hub credential set to read secrets from Key Vault"
   role_definition_name = "Key Vault Secrets User"
 }
