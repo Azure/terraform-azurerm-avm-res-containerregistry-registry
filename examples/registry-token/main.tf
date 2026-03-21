@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = ">= 4, < 5.0.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = ">= 0.9, < 1.0"
+    }
   }
 }
 
@@ -30,9 +34,11 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
+resource "time_static" "token_base_time" {}
+
 locals {
-  expiry_1y = timeadd(plantimestamp(), "8760h")  # ~1 year
-  expiry_2y = timeadd(plantimestamp(), "17520h") # ~2 years
+  expiry_1y = timeadd(time_static.token_base_time.rfc3339, "8760h")  # ~1 year
+  expiry_2y = timeadd(time_static.token_base_time.rfc3339, "17520h") # ~2 years
 }
 
 # This is the module call
