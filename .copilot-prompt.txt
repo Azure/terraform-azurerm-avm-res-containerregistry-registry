@@ -1,1 +1,0 @@
-﻿read C:\Users\zjhe\.openclaw\workspace-trello-router\COPILOT_INSTRUCTIONS.md then read C:\Users\zjhe\.openclaw\workspace-trello-router\avm_pr.md then follow the instructions and process the following trello event: event=updateCard card_id=69bdaf29f3256d2d4bc2a3c4 list_before= list_after=
