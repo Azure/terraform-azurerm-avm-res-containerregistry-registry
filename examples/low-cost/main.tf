@@ -43,3 +43,5 @@ module "containerregistry" {
   # need to override this default setting because zone redundancy isn't supported on Basic SKU.
   zone_redundancy_enabled = false
 }
+
+
