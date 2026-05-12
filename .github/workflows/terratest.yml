@@ -17,11 +17,8 @@ env:
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
   ARM_USE_OIDC: "true"
   FORCE_COLOR: 1
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  SECRETS_CONTEXT: ${{ toJson(secrets) }}
   TF_IN_AUTOMATION: 1
   TF_VAR_enable_telemetry: "false"
-  VARS_CONTEXT: ${{ toJson(vars) }}
 
 jobs:
   check:
@@ -132,12 +129,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          export ARM_TENANT_ID="${ARM_TENANT_ID_OVERRIDE:-${ARM_TENANT_ID}}"
+          export ARM_SUBSCRIPTION_ID="${ARM_SUBSCRIPTION_ID_OVERRIDE:-${ARM_SUBSCRIPTION_ID}}"
+          export ARM_CLIENT_ID="${ARM_CLIENT_ID_OVERRIDE:-${ARM_CLIENT_ID}}"
+          export ARM_OIDC_REQUEST_TOKEN="${ACTIONS_ID_TOKEN_REQUEST_TOKEN}"
+          export ARM_OIDC_REQUEST_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}"
+
           echo "::add-mask::${ARM_SUBSCRIPTION_ID}"
           echo "Using subscription ${{ matrix.subscriptionName }} ${ARM_SUBSCRIPTION_ID} for example ${TERRATEST_EXAMPLE}"
-
-          export REMOTE_SCRIPT="https://raw.githubusercontent.com/Azure/avm-terraform-governance/main/scripts"
-          curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o /tmp/prepare-credential.sh
-          # shellcheck disable=SC1091
-          source /tmp/prepare-credential.sh
 
           go test -count=1 -timeout 90m -v ./...
