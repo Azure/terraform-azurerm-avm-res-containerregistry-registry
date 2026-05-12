@@ -1,3 +1,4 @@
 # Tests
 
-Create tests in the provided subdirectories.
+- `tests/unit`: Terraform unit tests.
+- `tests/terratest`: Go terratest coverage for all example deployments.
