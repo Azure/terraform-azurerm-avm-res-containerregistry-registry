@@ -1,0 +1,143 @@
+---
+name: Terratest
+
+on:
+  pull_request:
+    types: ['opened', 'reopened', 'synchronize']
+  merge_group:
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  ARM_CLIENT_ID_OVERRIDE: ${{ secrets.ARM_CLIENT_ID_OVERRIDE }}
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_SUBSCRIPTION_ID_OVERRIDE: ${{ secrets.ARM_SUBSCRIPTION_ID_OVERRIDE }}
+  ARM_TENANT_ID_OVERRIDE: ${{ secrets.ARM_TENANT_ID_OVERRIDE }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_USE_OIDC: "true"
+  FORCE_COLOR: 1
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SECRETS_CONTEXT: ${{ toJson(secrets) }}
+  TF_IN_AUTOMATION: 1
+  TF_VAR_enable_telemetry: "false"
+  VARS_CONTEXT: ${{ toJson(vars) }}
+
+jobs:
+  check:
+    permissions: {}
+    runs-on: ubuntu-latest
+    steps:
+      - name: checking for fork
+        shell: pwsh
+        run: |
+          $isFork = "${{ github.event.pull_request.head.repo.fork }}"
+          if($isFork -eq "true") {
+            echo "### WARNING: This workflow is disabled for forked repositories because Terratest requires Azure credentials." >> $env:GITHUB_STEP_SUMMARY
+          }
+
+  subscriptions:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
+    name: Select Randomized Test Subscriptions
+    runs-on: ubuntu-latest
+    environment: no-approval
+    outputs:
+      subscriptionsJson: ${{ steps.subscriptions.outputs.subscriptionsJson }}
+    steps:
+      - name: Shuffle available test subscriptions
+        id: subscriptions
+        shell: pwsh
+        env:
+          TEST_SUBSCRIPTION_IDS: ${{ secrets.TEST_SUBSCRIPTION_IDS }}
+        run: |
+          $subscriptions = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
+          $subscriptions = $subscriptions | Get-Random -Shuffle
+          $subscriptionsJson = ConvertTo-Json $subscriptions -Compress
+
+          Write-Host "Randomized subscriptions: $subscriptionsJson"
+          Write-Output "subscriptionsJson=$($subscriptionsJson)" >> $env:GITHUB_OUTPUT
+
+  discover-examples:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
+    name: Discover Examples
+    runs-on: ubuntu-latest
+    needs: subscriptions
+    outputs:
+      examples: ${{ steps.examples.outputs.examples }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build example matrix and assign subscriptions
+        id: examples
+        shell: pwsh
+        env:
+          SUBSCRIPTIONS_JSON: ${{ needs.subscriptions.outputs.subscriptionsJson }}
+        run: |
+          $subscriptions = $env:SUBSCRIPTIONS_JSON | ConvertFrom-Json
+          $examples = Get-ChildItem -Path examples -Directory | Sort-Object Name
+          $processedExamples = @()
+
+          for ($i = 0; $i -lt $examples.Count; $i++) {
+            if (Test-Path "$($examples[$i].FullName)/.e2eignore") {
+              Write-Host "Skipping example $($examples[$i].Name) because it contains a .e2eignore file."
+              continue
+            }
+
+            $subscriptionIndex = $i % $subscriptions.Length
+            $processedExamples += @{
+              name             = $examples[$i].Name
+              subscriptionId   = $subscriptions[$subscriptionIndex].id
+              subscriptionName = $subscriptions[$subscriptionIndex].name
+            }
+          }
+
+          $json = ConvertTo-Json $processedExamples -Compress
+          Write-Output "examples=$json" >> $env:GITHUB_OUTPUT
+
+  terratest:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
+    name: Terratest - ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    environment: examples-test
+    needs: discover-examples
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover-examples.outputs.examples) }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: tests/terratest/go.mod
+          cache-dependency-path: tests/terratest/go.sum
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Run terratest
+        shell: bash
+        working-directory: tests/terratest
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ matrix.subscriptionId }}
+          TERRATEST_EXAMPLE: ${{ matrix.name }}
+        run: |
+          set -euo pipefail
+
+          echo "::add-mask::${ARM_SUBSCRIPTION_ID}"
+          echo "Using subscription ${{ matrix.subscriptionName }} ${ARM_SUBSCRIPTION_ID} for example ${TERRATEST_EXAMPLE}"
+
+          export REMOTE_SCRIPT="https://raw.githubusercontent.com/Azure/avm-terraform-governance/main/scripts"
+          curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o /tmp/prepare-credential.sh
+          # shellcheck disable=SC1091
+          source /tmp/prepare-credential.sh
+
+          go test -count=1 -timeout 90m -v ./...
