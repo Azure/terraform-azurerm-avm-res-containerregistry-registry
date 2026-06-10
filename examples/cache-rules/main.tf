@@ -1,0 +1,124 @@
+terraform {
+  required_version = "~> 1.6"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 4, < 5.0.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  skip_provider_registration = true
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+# Get current client configuration
+data "azurerm_client_config" "current" {}
+
+# This ensures we have unique CAF compliant names for our resources.
+module "naming" {
+  source  = "Azure/naming/azurerm"
+  version = "0.4.0"
+}
+
+# This is required for resource modules
+resource "azurerm_resource_group" "this" {
+  location = "australiaeast"
+  name     = module.naming.resource_group.name_unique
+}
+
+# Create Key Vault using AVM module to store Docker Hub credentials
+module "key_vault" {
+  source  = "Azure/avm-res-keyvault-vault/azurerm"
+  version = "0.10.2"
+
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.key_vault.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  network_acls = {
+    default_action = "Allow"
+    bypass         = "AzureServices"
+  }
+  role_assignments = {
+    deployment_user_secrets = {
+      role_definition_id_or_name = "Key Vault Secrets Officer"
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+  }
+  secrets = {
+    dockerhub_username = {
+      name = "dockerhub-username"
+    }
+    dockerhub_password = {
+      name = "dockerhub-password"
+    }
+  }
+  # IMPORTANT: Replace these values with your actual Docker Hub credentials
+  secrets_value = {
+    dockerhub_username = "your-dockerhub-username"
+    dockerhub_password = "your-dockerhub-password-or-token"
+  }
+  sku_name = "standard"
+  wait_for_rbac_before_secret_operations = {
+    create = "60s"
+  }
+}
+
+# This is the Container Registry module call
+module "containerregistry" {
+  source = "../../"
+
+  location = azurerm_resource_group.this.location
+  # source             = "Azure/avm-res-containerregistry-registry/azurerm"
+  name                = module.naming.container_registry.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+  # Cache rules for public registries
+  cache_rules = {
+    # MCR cache (no credentials needed)
+    mcr_dotnet = {
+      name              = "mcr-dotnet-cache"
+      source_repository = "mcr.microsoft.com/dotnet/aspnet"
+      target_repository = "cached/dotnet/aspnet"
+    }
+
+    # Docker Hub cache (with credentials from Key Vault)
+    dockerhub_nginx = {
+      name              = "dockerhub-nginx-cache"
+      source_repository = "docker.io/library/nginx"
+      target_repository = "cached/nginx"
+
+      credential_set = {
+        name               = "dockerhub-credentials"
+        login_server       = "docker.io"
+        username_secret_id = module.key_vault.secrets["dockerhub_username"].versionless_id
+        password_secret_id = module.key_vault.secrets["dockerhub_password"].versionless_id
+      }
+    }
+  }
+  # Managed identity is required for the credential set to access Key Vault
+  managed_identities = {
+    system_assigned = true
+  }
+  sku = "Premium" # Premium SKU is required for cache rules
+
+  depends_on = [module.key_vault]
+}
+
+# Grant the credential set's managed identity access to Key Vault secrets
+resource "azurerm_role_assignment" "credential_set_kv_access" {
+  principal_id         = module.containerregistry.cache_rules["dockerhub_nginx"].credential_set.identity[0].principal_id
+  scope                = module.key_vault.resource_id
+  description          = "Allow Docker Hub credential set to read secrets from Key Vault"
+  role_definition_name = "Key Vault Secrets User"
+}
