@@ -10,6 +10,36 @@ variable "anonymous_pull_enabled" {
   description = "Specifies whether anonymous (unauthenticated) pull access to this Container Registry is allowed.  Requries Standard or Premium SKU."
 }
 
+variable "cache_rules" {
+  type = map(object({
+    name              = string
+    source_repository = string
+    target_repository = string
+    credential_set = optional(object({
+      name               = string
+      login_server       = string
+      username_secret_id = string
+      password_secret_id = string
+    }), null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of cache rules to create on the Container Registry. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Cache rules allow you to cache container images from public registries (e.g., Docker Hub, MCR) in your Azure Container Registry for faster and more reliable access.
+Requires Premium SKU.
+
+- `name` - (Required) The name of the cache rule.
+- `source_repository` - (Required) The source repository path to cache from (e.g., 'library/hello-world' for Docker Hub, 'mcr.microsoft.com/dotnet/aspnet' for MCR).
+- `target_repository` - (Required) The target repository path in your registry where the cached image will be stored.
+- `credential_set` - (Optional) Credential set configuration for authenticated pulls from the source registry. Required for Docker Hub due to rate limits. Not required for public registries like MCR.
+  - `name` - (Required) The name of the credential set.
+  - `login_server` - (Required) The external registry login server (e.g., 'docker.io' for Docker Hub).
+  - `username_secret_id` - (Required) The Key Vault secret ID containing the username.
+  - `password_secret_id` - (Required) The Key Vault secret ID containing the password.
+
+DESCRIPTION
+}
+
 variable "data_endpoint_enabled" {
   type        = bool
   default     = false
