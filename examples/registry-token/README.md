@@ -60,7 +60,7 @@ module "containerregistry" {
           enabled = true
           passwords = {
             password1 = {
-              expiry = "2025-12-31T00:00:00Z"
+              expiry = "2027-12-31T00:00:00Z"
             }
           }
         }
@@ -82,10 +82,10 @@ module "containerregistry" {
           enabled = true
           passwords = {
             password1 = {
-              expiry = "2025-12-31T00:00:00Z"
+              expiry = "2027-12-31T00:00:00Z"
             }
             password2 = {
-              expiry = "2026-12-31T00:00:00Z"
+              expiry = "2027-12-31T00:00:00Z"
             }
           }
         }
