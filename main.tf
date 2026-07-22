@@ -1,19 +1,11 @@
 resource "azurerm_container_registry" "this" {
-  location                      = var.location
-  name                          = var.name
-  resource_group_name           = var.resource_group_name
-  sku                           = var.sku
-  admin_enabled                 = var.admin_enabled
-  anonymous_pull_enabled        = var.anonymous_pull_enabled
-  data_endpoint_enabled         = var.data_endpoint_enabled
-  export_policy_enabled         = var.export_policy_enabled
-  network_rule_bypass_option    = var.network_rule_bypass_option
-  public_network_access_enabled = var.public_network_access_enabled
-  quarantine_policy_enabled     = var.quarantine_policy_enabled
-  retention_policy_in_days      = var.sku == "Premium" ? var.retention_policy_in_days : null
-  tags                          = var.tags
-  trust_policy_enabled          = var.enable_trust_policy
-  zone_redundancy_enabled       = var.sku == "Premium" ? var.zone_redundancy_enabled : false
+  location               = var.location
+  name                   = var.name
+  resource_group_name    = var.resource_group_name
+  sku                    = var.sku
+  admin_enabled          = var.admin_enabled
+  anonymous_pull_enabled = var.anonymous_pull_enabled
+  data_endpoint_enabled  = var.data_endpoint_enabled
 
   dynamic "encryption" {
     for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}
@@ -23,24 +15,10 @@ resource "azurerm_container_registry" "this" {
       key_vault_key_id   = encryption.value.key_version != null ? "${data.azurerm_key_vault_key.this[0].versionless_id}/${encryption.value.key_version}" : data.azurerm_key_vault_key.this[0].versionless_id
     }
   }
-  dynamic "georeplications" {
-    for_each = local.ordered_geo_replications
+  export_policy_enabled                 = var.export_policy_enabled
+  network_rule_bypass_for_tasks_enabled = var.network_rule_bypass_for_tasks_enabled
+  network_rule_bypass_option            = var.network_rule_bypass_option
 
-    content {
-      location                  = georeplications.value.location
-      regional_endpoint_enabled = georeplications.value.regional_endpoint_enabled
-      tags                      = georeplications.value.tags
-      zone_redundancy_enabled   = georeplications.value.zone_redundancy_enabled
-    }
-  }
-  dynamic "identity" {
-    for_each = local.managed_identities.system_assigned_user_assigned
-
-    content {
-      type         = identity.value.type
-      identity_ids = identity.value.user_assigned_resource_ids
-    }
-  }
   # Only one network_rule_set block is allowed.
   # Create it if the variable is not null.
   dynamic "network_rule_set" {
@@ -57,6 +35,32 @@ resource "azurerm_container_registry" "this" {
           ip_range = ip_rule.value.ip_range
         }
       }
+    }
+  }
+  public_network_access_enabled = var.public_network_access_enabled
+  quarantine_policy_enabled     = var.quarantine_policy_enabled
+  retention_policy_in_days      = var.sku == "Premium" ? var.retention_policy_in_days : null
+  tags                          = var.tags
+  trust_policy_enabled          = var.enable_trust_policy
+  zone_redundancy_enabled       = var.sku == "Premium" ? var.zone_redundancy_enabled : false
+
+  dynamic "georeplications" {
+    for_each = local.ordered_geo_replications
+
+    content {
+      location                  = georeplications.value.location
+      regional_endpoint_enabled = georeplications.value.regional_endpoint_enabled
+      tags                      = georeplications.value.tags
+      zone_redundancy_enabled   = georeplications.value.zone_redundancy_enabled
+    }
+  }
+
+  dynamic "identity" {
+    for_each = local.managed_identities.system_assigned_user_assigned
+
+    content {
+      type         = identity.value.type
+      identity_ids = identity.value.user_assigned_resource_ids
     }
   }
 
@@ -129,6 +133,7 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
       category_group = enabled_log.value
     }
   }
+
   dynamic "metric" {
     for_each = each.value.metric_categories
 
