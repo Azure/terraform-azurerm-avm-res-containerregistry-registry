@@ -98,9 +98,8 @@ variable "retention_policy_in_days" {
   type        = number
   default     = 7
   description = <<DESCRIPTION
-If enabled, this retention policy will purge an untagged manifest after a specified number of days.
-
-- `days` - (Optional) The number of days before the policy Defaults to 7 days.
+The number of days to retain untagged manifests. Only applicable for Premium SKU.
+Set to `null` to disable the retention policy. Defaults to `7`.
 
 DESCRIPTION
 }
