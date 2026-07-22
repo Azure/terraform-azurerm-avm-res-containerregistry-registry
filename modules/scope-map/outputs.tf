@@ -5,6 +5,7 @@ output "id" {
 
 output "registry_token_passwords" {
   description = "The registry token password object."
+  sensitive   = true
   value       = azurerm_container_registry_token_password.this
 }
 

@@ -34,6 +34,7 @@ The scope map module contains the following outputs:
     - `password1` - The first password object of the token.
     - `password2` - The second password object of the token.
 DESCRIPTION
+  sensitive   = true
   value       = module.scope_maps
 }
 
