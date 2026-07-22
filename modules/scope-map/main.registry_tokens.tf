@@ -2,6 +2,7 @@ resource "azurerm_container_registry_token" "this" {
   for_each = var.registry_tokens
 
   container_registry_name = var.container_registry_name
+  enabled                 = each.value.enabled
   name                    = each.value.name
   resource_group_name     = var.resource_group_name
   scope_map_id            = azurerm_container_registry_scope_map.this.id
