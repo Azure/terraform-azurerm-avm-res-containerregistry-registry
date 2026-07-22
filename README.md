@@ -18,7 +18,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4, < 5.0.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.81.0, < 5.0.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
@@ -234,6 +234,14 @@ object({
 ```
 
 Default: `{}`
+
+### <a name="input_network_rule_bypass_for_tasks_enabled"></a> [network\_rule\_bypass\_for\_tasks\_enabled](#input\_network\_rule\_bypass\_for\_tasks\_enabled)
+
+Description: Whether to allow Container Registry Tasks to access a network-restricted Container Registry. Defaults to `false`.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_network_rule_bypass_option"></a> [network\_rule\_bypass\_option](#input\_network\_rule\_bypass\_option)
 

@@ -41,6 +41,13 @@ A list of geo-replication configurations for the Container Registry.
 DESCRIPTION
 }
 
+variable "network_rule_bypass_for_tasks_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to allow Container Registry Tasks to access a network-restricted Container Registry. Defaults to `false`."
+  nullable    = false
+}
+
 variable "network_rule_bypass_option" {
   type        = string
   default     = "None"
