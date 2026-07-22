@@ -66,6 +66,10 @@ resource "azurerm_container_registry" "this" {
 
   lifecycle {
     precondition {
+      condition     = var.sku == "Premium" || length(var.agent_pools) == 0
+      error_message = "The Premium SKU is required if any agent pools are defined."
+    }
+    precondition {
       condition     = var.zone_redundancy_enabled && var.sku == "Premium" || !var.zone_redundancy_enabled
       error_message = "The Premium SKU is required if zone redundancy is enabled."
     }
