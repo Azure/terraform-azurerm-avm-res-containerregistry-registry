@@ -1,3 +1,25 @@
+output "admin_password" {
+  description = "The password associated with the Container Registry admin account."
+  sensitive   = true
+  value       = azurerm_container_registry.this.admin_password
+}
+
+output "admin_username" {
+  description = "The username associated with the Container Registry admin account."
+  sensitive   = true
+  value       = azurerm_container_registry.this.admin_username
+}
+
+output "data_endpoint_host_names" {
+  description = "The host names of the dedicated data endpoints for the Container Registry."
+  value       = azurerm_container_registry.this.data_endpoint_host_names
+}
+
+output "login_server" {
+  description = "The URL used to log in to the Container Registry."
+  value       = azurerm_container_registry.this.login_server
+}
+
 output "name" {
   description = "The name of the parent resource."
   value       = azurerm_container_registry.this.name
@@ -34,4 +56,9 @@ DESCRIPTION
 output "system_assigned_mi_principal_id" {
   description = "The system assigned managed identity principal ID of the parent resource."
   value       = try(azurerm_container_registry.this.identity[0].principal_id, null)
+}
+
+output "system_assigned_mi_tenant_id" {
+  description = "The system assigned managed identity tenant ID of the parent resource."
+  value       = try(azurerm_container_registry.this.identity[0].tenant_id, null)
 }
