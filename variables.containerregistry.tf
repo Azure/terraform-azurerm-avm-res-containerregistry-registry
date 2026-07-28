@@ -115,13 +115,7 @@ variable "role_assignment_mode" {
   type        = string
   default     = "LegacyRegistryPermissions"
   description = <<DESCRIPTION
-Specifies the RBAC authorization model used to control access to the repositories in this Container Registry.
-
-Possible values are:
-- `LegacyRegistryPermissions` - Uses the registry-wide built-in roles (for example `AcrPull`, `AcrPush` and `AcrDelete`). This is the default and preserves the existing behaviour.
-- `AbacRepositoryPermissions` - Enables attribute-based access control (ABAC) so that access can be granted per repository. Microsoft recommends this mode for new deployments.
-
-Defaults to `LegacyRegistryPermissions`. Both modes are fully supported and this value can be changed on an existing registry. See the "Migrating to `AbacRepositoryPermissions`" section of the module README for guidance on switching an existing registry to ABAC.
+Specifies the repository authorization mode. Possible values are `LegacyRegistryPermissions` and `AbacRepositoryPermissions`. Defaults to `LegacyRegistryPermissions`; both modes are supported. See the module README before switching an existing registry to `AbacRepositoryPermissions`.
 DESCRIPTION
   nullable    = false
 
