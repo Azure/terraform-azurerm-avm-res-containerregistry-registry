@@ -26,6 +26,15 @@ The full `resource` output has been removed because the provider resource object
 
 The admin username and password outputs are sensitive and are only populated when the registry admin account is enabled. Azure recommends using an individual identity, managed identity, service principal, or repository-scoped token instead of sharing the admin account. For more information, see [Authenticate with an Azure container registry](https://learn.microsoft.com/azure/container-registry/container-registry-authentication).
 
+## Migrating to `AbacRepositoryPermissions`
+
+Both authorization modes remain supported. When switching an existing registry to `AbacRepositoryPermissions`, stage the change to avoid interrupting access:
+
+1. Add ABAC-compatible repository role assignments for identities using `AcrPull`, `AcrPush`, or `AcrDelete`.
+2. Set `role_assignment_mode = "AbacRepositoryPermissions"` and apply.
+3. Validate repository access.
+4. Optionally remove the obsolete legacy role assignments.
+
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
@@ -393,6 +402,14 @@ Set to `null` to disable the retention policy. Defaults to `7`.
 Type: `number`
 
 Default: `7`
+
+### <a name="input_role_assignment_mode"></a> [role\_assignment\_mode](#input\_role\_assignment\_mode)
+
+Description: Specifies the repository authorization mode. Possible values are `LegacyRegistryPermissions` and `AbacRepositoryPermissions`. Defaults to `LegacyRegistryPermissions`; both modes are supported. See the module README before switching an existing registry to `AbacRepositoryPermissions`.
+
+Type: `string`
+
+Default: `"LegacyRegistryPermissions"`
 
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 

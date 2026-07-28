@@ -23,3 +23,12 @@ The full `resource` output has been removed because the provider resource object
 | `module.container_registry.resource.identity[0].tenant_id` | `module.container_registry.system_assigned_mi_tenant_id` |
 
 The admin username and password outputs are sensitive and are only populated when the registry admin account is enabled. Azure recommends using an individual identity, managed identity, service principal, or repository-scoped token instead of sharing the admin account. For more information, see [Authenticate with an Azure container registry](https://learn.microsoft.com/azure/container-registry/container-registry-authentication).
+
+## Migrating to `AbacRepositoryPermissions`
+
+Both authorization modes remain supported. When switching an existing registry to `AbacRepositoryPermissions`, stage the change to avoid interrupting access:
+
+1. Add ABAC-compatible repository role assignments for identities using `AcrPull`, `AcrPush`, or `AcrDelete`.
+2. Set `role_assignment_mode = "AbacRepositoryPermissions"` and apply.
+3. Validate repository access.
+4. Optionally remove the obsolete legacy role assignments.

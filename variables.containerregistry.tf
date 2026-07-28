@@ -111,6 +111,20 @@ Set to `null` to disable the retention policy. Defaults to `7`.
 DESCRIPTION
 }
 
+variable "role_assignment_mode" {
+  type        = string
+  default     = "LegacyRegistryPermissions"
+  description = <<DESCRIPTION
+Specifies the repository authorization mode. Possible values are `LegacyRegistryPermissions` and `AbacRepositoryPermissions`. Defaults to `LegacyRegistryPermissions`; both modes are supported. See the module README before switching an existing registry to `AbacRepositoryPermissions`.
+DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = contains(["LegacyRegistryPermissions", "AbacRepositoryPermissions"], var.role_assignment_mode)
+    error_message = "The role_assignment_mode variable must be either `LegacyRegistryPermissions` or `AbacRepositoryPermissions`."
+  }
+}
+
 variable "scope_maps" {
   type = map(object({
     name        = string
