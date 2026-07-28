@@ -9,6 +9,23 @@ As a starting point, the azurerm\_container\_registry resource has been implemen
 > [!WARNING]
 > Major version Zero (0.y.z) is for initial development. Anything MAY change at any time. A module SHOULD NOT be considered stable till at least it is major version one (1.0.0) or greater. Changes will always be via new versions being published and no changes will be made to existing published versions. For more details please go to <https://semver.org/>
 
+## Migrating from the `resource` output
+
+The full `resource` output has been removed because the provider resource object contains sensitive attributes and its schema can change between provider versions. Use the discrete outputs instead:
+
+| Previous reference | Replacement |
+| --- | --- |
+| `module.container_registry.resource.id` | `module.container_registry.resource_id` |
+| `module.container_registry.resource.name` | `module.container_registry.name` |
+| `module.container_registry.resource.login_server` | `module.container_registry.login_server` |
+| `module.container_registry.resource.admin_username` | `module.container_registry.admin_username` |
+| `module.container_registry.resource.admin_password` | `module.container_registry.admin_password` |
+| `module.container_registry.resource.data_endpoint_host_names` | `module.container_registry.data_endpoint_host_names` |
+| `module.container_registry.resource.identity[0].principal_id` | `module.container_registry.system_assigned_mi_principal_id` |
+| `module.container_registry.resource.identity[0].tenant_id` | `module.container_registry.system_assigned_mi_tenant_id` |
+
+The admin username and password outputs are sensitive and are only populated when the registry admin account is enabled. Azure recommends using an individual identity, managed identity, service principal, or repository-scoped token instead of sharing the admin account. For more information, see [Authenticate with an Azure container registry](https://learn.microsoft.com/azure/container-registry/container-registry-authentication).
+
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
@@ -476,6 +493,22 @@ Default: `true`
 
 The following outputs are exported:
 
+### <a name="output_admin_password"></a> [admin\_password](#output\_admin\_password)
+
+Description: The password associated with the Container Registry admin account.
+
+### <a name="output_admin_username"></a> [admin\_username](#output\_admin\_username)
+
+Description: The username associated with the Container Registry admin account.
+
+### <a name="output_data_endpoint_host_names"></a> [data\_endpoint\_host\_names](#output\_data\_endpoint\_host\_names)
+
+Description: The host names of the dedicated data endpoints for the Container Registry.
+
+### <a name="output_login_server"></a> [login\_server](#output\_login\_server)
+
+Description: The URL used to log in to the Container Registry.
+
 ### <a name="output_name"></a> [name](#output\_name)
 
 Description: The name of the parent resource.
@@ -483,10 +516,6 @@ Description: The name of the parent resource.
 ### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
 
 Description: A map of private endpoints. The map key is the supplied input to var.private\_endpoints. The map value is the entire azurerm\_private\_endpoint resource.
-
-### <a name="output_resource"></a> [resource](#output\_resource)
-
-Description: This is the full output for the resource.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
@@ -507,6 +536,10 @@ The scope map module contains the following outputs:
 ### <a name="output_system_assigned_mi_principal_id"></a> [system\_assigned\_mi\_principal\_id](#output\_system\_assigned\_mi\_principal\_id)
 
 Description: The system assigned managed identity principal ID of the parent resource.
+
+### <a name="output_system_assigned_mi_tenant_id"></a> [system\_assigned\_mi\_tenant\_id](#output\_system\_assigned\_mi\_tenant\_id)
+
+Description: The system assigned managed identity tenant ID of the parent resource.
 
 ## Modules
 
