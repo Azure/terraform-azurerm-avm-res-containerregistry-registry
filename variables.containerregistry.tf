@@ -111,6 +111,26 @@ Set to `null` to disable the retention policy. Defaults to `7`.
 DESCRIPTION
 }
 
+variable "role_assignment_mode" {
+  type        = string
+  default     = "LegacyRegistryPermissions"
+  description = <<DESCRIPTION
+Specifies the RBAC authorization model used to control access to the repositories in this Container Registry.
+
+Possible values are:
+- `LegacyRegistryPermissions` - Uses the registry-wide built-in roles (for example `AcrPull`, `AcrPush` and `AcrDelete`). This is the default and preserves the existing behaviour.
+- `AbacRepositoryPermissions` - Enables attribute-based access control (ABAC) so that access can be granted per repository. Microsoft recommends this mode for new deployments.
+
+Defaults to `LegacyRegistryPermissions`. Both modes are fully supported and this value can be changed on an existing registry. See the "Migrating to `AbacRepositoryPermissions`" section of the module README for guidance on switching an existing registry to ABAC.
+DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = contains(["LegacyRegistryPermissions", "AbacRepositoryPermissions"], var.role_assignment_mode)
+    error_message = "The role_assignment_mode variable must be either `LegacyRegistryPermissions` or `AbacRepositoryPermissions`."
+  }
+}
+
 variable "scope_maps" {
   type = map(object({
     name        = string

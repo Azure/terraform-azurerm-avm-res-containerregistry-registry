@@ -40,6 +40,7 @@ resource "azurerm_container_registry" "this" {
   public_network_access_enabled = var.public_network_access_enabled
   quarantine_policy_enabled     = var.quarantine_policy_enabled
   retention_policy_in_days      = var.sku == "Premium" ? var.retention_policy_in_days : null
+  role_assignment_mode          = var.role_assignment_mode
   tags                          = var.tags
   trust_policy_enabled          = var.enable_trust_policy
   zone_redundancy_enabled       = var.sku == "Premium" ? var.zone_redundancy_enabled : false

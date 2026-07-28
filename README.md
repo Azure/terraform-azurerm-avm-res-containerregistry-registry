@@ -26,6 +26,21 @@ The full `resource` output has been removed because the provider resource object
 
 The admin username and password outputs are sensitive and are only populated when the registry admin account is enabled. Azure recommends using an individual identity, managed identity, service principal, or repository-scoped token instead of sharing the admin account. For more information, see [Authenticate with an Azure container registry](https://learn.microsoft.com/azure/container-registry/container-registry-authentication).
 
+## Migrating to `AbacRepositoryPermissions`
+
+The `role_assignment_mode` variable selects the authorization model for the registry. It defaults to `LegacyRegistryPermissions`, which keeps the registry-wide roles (`AcrPull`, `AcrPush`, `AcrDelete`, and similar) and preserves existing behaviour. Setting it to `AbacRepositoryPermissions` enables attribute-based access control (ABAC) so that access can be scoped per repository, which is the model Microsoft recommends for new deployments.
+
+Both modes are fully supported and will remain available; there is no requirement to move off `LegacyRegistryPermissions`.
+
+When switching an **existing** registry to `AbacRepositoryPermissions`, stage the change so that access is never interrupted:
+
+1. **Add ABAC-compatible role assignments first.** While the registry is still in `LegacyRegistryPermissions`, grant the ABAC repository roles (for example `Container Registry Repository Reader`, `Container Registry Repository Writer`, `Container Registry Repository Contributor`) to the identities that currently rely on `AcrPull`/`AcrPush`/`AcrDelete`. You can do this through the `role_assignments` variable or outside the module.
+2. **Switch the mode.** Set `role_assignment_mode = "AbacRepositoryPermissions"` and apply.
+3. **Validate access.** Confirm that every consumer (pipelines, workloads, and users) can still pull, push, and manage content as expected under the new repository-scoped assignments.
+4. **Remove obsolete assignments only after validation.** Once access is confirmed, you may optionally clean up the now-redundant registry-wide `AcrPull`/`AcrPush`/`AcrDelete` assignments.
+
+Do not remove the legacy registry-wide assignments before completing steps 1–3, otherwise consumers may lose access during the transition.
+
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
@@ -393,6 +408,20 @@ Set to `null` to disable the retention policy. Defaults to `7`.
 Type: `number`
 
 Default: `7`
+
+### <a name="input_role_assignment_mode"></a> [role\_assignment\_mode](#input\_role\_assignment\_mode)
+
+Description: Specifies the RBAC authorization model used to control access to the repositories in this Container Registry.
+
+Possible values are:
+- `LegacyRegistryPermissions` - Uses the registry-wide built-in roles (for example `AcrPull`, `AcrPush` and `AcrDelete`). This is the default and preserves the existing behaviour.
+- `AbacRepositoryPermissions` - Enables attribute-based access control (ABAC) so that access can be granted per repository. Microsoft recommends this mode for new deployments.
+
+Defaults to `LegacyRegistryPermissions`. Both modes are fully supported and this value can be changed on an existing registry. See the "Migrating to `AbacRepositoryPermissions`" section of the module README for guidance on switching an existing registry to ABAC.
+
+Type: `string`
+
+Default: `"LegacyRegistryPermissions"`
 
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 
