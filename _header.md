@@ -24,6 +24,14 @@ The full `resource` output has been removed because the provider resource object
 
 The admin username and password outputs are sensitive and are only populated when the registry admin account is enabled. Azure recommends using an individual identity, managed identity, service principal, or repository-scoped token instead of sharing the admin account. For more information, see [Authenticate with an Azure container registry](https://learn.microsoft.com/azure/container-registry/container-registry-authentication).
 
+## Resource locks and private endpoints
+
+Private endpoints inherit the Container Registry lock by default. Set `private_endpoints_inherit_lock` to `false` to disable inheritance. A lock configured directly on a `private_endpoints` entry takes precedence over an inherited lock.
+
+`CanNotDelete` prevents deletion while allowing updates. `ReadOnly` also prevents updates and can block changes to private endpoint properties, application security group associations, or private DNS zone groups. With externally managed DNS zone groups, apply the lock only after the external controller or Azure Policy has finished configuring the private endpoint.
+
+Terraform removes module-managed locks before destroying their protected resources. Azure lock removal is eventually consistent, so a destroy can fail temporarily with `ScopeLocked`; retry the operation after the lock removal has propagated.
+
 ## Migrating to `AbacRepositoryPermissions`
 
 Both authorization modes remain supported. When switching an existing registry to `AbacRepositoryPermissions`, stage the change to avoid interrupting access:

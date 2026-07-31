@@ -198,6 +198,21 @@ A map of private endpoints to create on the Container Registry. The map key is d
   - `private_ip_address` - The private IP address of the IP configuration.
 DESCRIPTION
   nullable    = false
+
+  validation {
+    condition = alltrue([
+      for private_endpoint in var.private_endpoints :
+      private_endpoint.lock == null ? true : contains(["CanNotDelete", "ReadOnly"], private_endpoint.lock.kind)
+    ])
+    error_message = "Each private endpoint lock kind must be either `\"CanNotDelete\"` or `\"ReadOnly\"`."
+  }
+}
+
+variable "private_endpoints_inherit_lock" {
+  type        = bool
+  default     = true
+  description = "Whether private endpoints inherit the lock applied to the Container Registry. An explicitly configured private endpoint lock takes precedence."
+  nullable    = false
 }
 
 variable "private_endpoints_manage_dns_zone_group" {

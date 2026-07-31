@@ -29,5 +29,9 @@ locals {
       }
     ]
   ]) : "${assoc.pe_key}-${assoc.asg_key}" => assoc }
+  private_endpoint_locks = {
+    for pe_key, pe_value in var.private_endpoints : pe_key => pe_value.lock != null ? pe_value.lock : var.lock
+    if pe_value.lock != null || (var.private_endpoints_inherit_lock && var.lock != null)
+  }
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
 }
