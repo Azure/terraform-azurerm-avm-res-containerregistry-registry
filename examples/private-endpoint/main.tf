@@ -58,6 +58,9 @@ module "containerregistry" {
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  lock = {
+    kind = "CanNotDelete"
+  }
   private_endpoints = {
     primary = {
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.this.id]
