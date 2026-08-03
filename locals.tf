@@ -1,4 +1,26 @@
 locals {
+  customer_managed_key_key_vault_key_id = var.customer_managed_key == null ? null : (
+    var.customer_managed_key.direct_values != null
+    ? (
+      var.customer_managed_key.key_version != null
+      ? "${var.customer_managed_key.direct_values.key_vault_key_id}/${var.customer_managed_key.key_version}"
+      : var.customer_managed_key.direct_values.key_vault_key_id
+    )
+    : (
+      var.customer_managed_key.key_version != null
+      ? "${data.azurerm_key_vault_key.this[0].versionless_id}/${var.customer_managed_key.key_version}"
+      : data.azurerm_key_vault_key.this[0].versionless_id
+    )
+  )
+  customer_managed_key_identity_client_id = var.customer_managed_key == null ? null : (
+    var.customer_managed_key.direct_values != null
+    ? var.customer_managed_key.direct_values.identity_client_id
+    : (
+      var.customer_managed_key.user_assigned_identity == null
+      ? null
+      : data.azurerm_user_assigned_identity.this[0].client_id
+    )
+  )
   managed_identities = {
     system_assigned_user_assigned = (var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0) ? {
       this = {

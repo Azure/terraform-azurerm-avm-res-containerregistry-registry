@@ -125,6 +125,10 @@ module "containerregistry" {
   customer_managed_key = {
     key_vault_resource_id = azurerm_key_vault.this.id
     key_name              = azurerm_key_vault_key.key.name
+    direct_values = {
+      key_vault_key_id   = azurerm_key_vault_key.key.versionless_id
+      identity_client_id = azurerm_user_assigned_identity.this.client_id
+    }
     user_assigned_identity = {
       resource_id = azurerm_user_assigned_identity.this.id
     }

@@ -11,8 +11,8 @@ resource "azurerm_container_registry" "this" {
     for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}
 
     content {
-      identity_client_id = data.azurerm_user_assigned_identity.this[0].client_id
-      key_vault_key_id   = encryption.value.key_version != null ? "${data.azurerm_key_vault_key.this[0].versionless_id}/${encryption.value.key_version}" : data.azurerm_key_vault_key.this[0].versionless_id
+      identity_client_id = local.customer_managed_key_identity_client_id
+      key_vault_key_id   = local.customer_managed_key_key_vault_key_id
     }
   }
   export_policy_enabled                 = var.export_policy_enabled

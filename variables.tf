@@ -25,6 +25,10 @@ variable "customer_managed_key" {
     key_vault_resource_id = string
     key_name              = string
     key_version           = optional(string, null)
+    direct_values = optional(object({
+      key_vault_key_id   = string
+      identity_client_id = string
+    }), null)
     user_assigned_identity = optional(object({
       resource_id = string
     }), null)
@@ -34,10 +38,24 @@ variable "customer_managed_key" {
 Controls the Customer managed key configuration on this resource. The following properties can be specified:
 - `key_vault_resource_id` - (Required) Resource ID of the Key Vault that the customer managed key belongs to.
 - `key_name` - (Required) Specifies the name of the Customer Managed Key Vault Key.
-- `key_version` - (Optional) The version of the Customer Managed Key Vault Key.
+- `key_version` - (Optional) The version of the Customer Managed Key Vault Key. Ignored when `direct_values.key_vault_key_id` already includes a version.
+- `direct_values` - (Optional) Values to pass directly to the Container Registry encryption block. When supplied, the module skips its internal Key Vault Key and User Assigned Identity data source lookups. Use this when the key and identity are created in the same Terraform apply. The identity's `resource_id` must still be supplied through `user_assigned_identity` so the module can verify that it is assigned to the Container Registry.
+  - `key_vault_key_id` - (Required) The full Key Vault Key ID/URI, either versionless (for example, `https://<vault>.vault.azure.net/keys/<key>`) or versioned (for example, `https://<vault>.vault.azure.net/keys/<key>/<version>`).
+  - `identity_client_id` - (Required) The Client ID of the User Assigned Identity that has access to the key.
 - `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key.
   - `resource_id` - (Required) The resource ID of the User Assigned Identity that has access to the key.
+
+Supplying `direct_values` lets the customer managed key, identity, and this Container Registry be created in a single `terraform apply`, without relying on `depends_on` to defer the module's internal data source reads. Terraform can determine that the object is present during planning even when its values are not known until apply.
 DESCRIPTION
+
+  validation {
+    condition     = var.customer_managed_key == null || var.customer_managed_key.direct_values == null || can(regex("^https://[^/]+/keys/[^/]+(/[0-9a-fA-F]{32})?$", var.customer_managed_key.direct_values.key_vault_key_id))
+    error_message = "`customer_managed_key.direct_values.key_vault_key_id` must be a valid Key Vault key ID/URI, e.g. `https://<vault-name>.vault.azure.net/keys/<key-name>` (versionless) or `https://<vault-name>.vault.azure.net/keys/<key-name>/<version>` (versioned)."
+  }
+  validation {
+    condition     = var.customer_managed_key == null || var.customer_managed_key.direct_values == null || var.customer_managed_key.key_version == null || !can(regex("^https://[^/]+/keys/[^/]+/[0-9a-fA-F]{32}$", var.customer_managed_key.direct_values.key_vault_key_id))
+    error_message = "`customer_managed_key.key_version` must not be set when `customer_managed_key.direct_values.key_vault_key_id` already includes a version segment. Supply the version once, either embedded in `key_vault_key_id` or via `key_version`, not both."
+  }
 }
 
 variable "diagnostic_settings" {
