@@ -231,13 +231,13 @@ run "customer_managed_key_direct_values_skip_data_lookups" {
   state_key = "customer-managed-key-direct-values-skip-data-lookups"
 
   variables {
+    customer_managed_key_direct_values = {
+      identity_client_id = "11111111-1111-1111-1111-111111111111"
+      key_vault_key_id   = "https://kv-test.vault.azure.net/keys/cmk-test/abcdef0123456789abcdef0123456789"
+    }
     customer_managed_key = {
       key_name              = "cmk-test"
       key_vault_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.KeyVault/vaults/kv-test"
-      direct_values = {
-        identity_client_id = "11111111-1111-1111-1111-111111111111"
-        key_vault_key_id   = "https://kv-test.vault.azure.net/keys/cmk-test/abcdef0123456789abcdef0123456789"
-      }
       user_assigned_identity = {
         resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uami-test"
       }
@@ -284,14 +284,14 @@ run "customer_managed_key_direct_versionless_id_with_key_version" {
   state_key = "customer-managed-key-direct-versionless-id-with-key-version"
 
   variables {
+    customer_managed_key_direct_values = {
+      identity_client_id = "11111111-1111-1111-1111-111111111111"
+      key_vault_key_id   = "https://kv-test.vault.azure.net/keys/cmk-test"
+    }
     customer_managed_key = {
       key_name              = "cmk-test"
       key_vault_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.KeyVault/vaults/kv-test"
       key_version           = "abcdef0123456789abcdef0123456789"
-      direct_values = {
-        identity_client_id = "11111111-1111-1111-1111-111111111111"
-        key_vault_key_id   = "https://kv-test.vault.azure.net/keys/cmk-test"
-      }
       user_assigned_identity = {
         resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uami-test"
       }
@@ -315,19 +315,19 @@ run "invalid_customer_managed_key_key_vault_key_id_format" {
   state_key = "invalid-customer-managed-key-key-vault-key-id-format"
 
   variables {
+    customer_managed_key_direct_values = {
+      identity_client_id = "11111111-1111-1111-1111-111111111111"
+      key_vault_key_id   = "not-a-valid-key-id"
+    }
     customer_managed_key = {
       key_name              = "cmk-test"
       key_vault_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.KeyVault/vaults/kv-test"
-      direct_values = {
-        identity_client_id = "11111111-1111-1111-1111-111111111111"
-        key_vault_key_id   = "not-a-valid-key-id"
-      }
     }
     sku = "Premium"
   }
 
   expect_failures = [
-    var.customer_managed_key,
+    var.customer_managed_key_direct_values,
   ]
 }
 
@@ -336,19 +336,19 @@ run "ambiguous_customer_managed_key_version_and_versioned_key_vault_key_id" {
   state_key = "ambiguous-customer-managed-key-version-and-versioned-key-vault-key-id"
 
   variables {
+    customer_managed_key_direct_values = {
+      identity_client_id = "11111111-1111-1111-1111-111111111111"
+      key_vault_key_id   = "https://kv-test.vault.azure.net/keys/cmk-test/abcdef0123456789abcdef0123456789"
+    }
     customer_managed_key = {
       key_name              = "cmk-test"
       key_vault_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.KeyVault/vaults/kv-test"
       key_version           = "11111111111111111111111111111111"
-      direct_values = {
-        identity_client_id = "11111111-1111-1111-1111-111111111111"
-        key_vault_key_id   = "https://kv-test.vault.azure.net/keys/cmk-test/abcdef0123456789abcdef0123456789"
-      }
     }
     sku = "Premium"
   }
 
   expect_failures = [
-    var.customer_managed_key,
+    azurerm_container_registry.this,
   ]
 }

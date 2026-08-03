@@ -5,7 +5,7 @@
 This deploys the Container Registry module with customer-managed-key encryption.
 
 The Key Vault Key and User Assigned Identity are created in the same `terraform apply` as the Container Registry.
-The example supplies their computed values through `customer_managed_key.direct_values`, which prevents the module
+The example supplies their computed values through `customer_managed_key_direct_values`, which prevents the module
 from reading those resources back through data sources before they exist.
 
 ```hcl
@@ -133,13 +133,13 @@ module "containerregistry" {
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  customer_managed_key_direct_values = {
+    key_vault_key_id   = azurerm_key_vault_key.key.versionless_id
+    identity_client_id = azurerm_user_assigned_identity.this.client_id
+  }
   customer_managed_key = {
     key_vault_resource_id = azurerm_key_vault.this.id
     key_name              = azurerm_key_vault_key.key.name
-    direct_values = {
-      key_vault_key_id   = azurerm_key_vault_key.key.versionless_id
-      identity_client_id = azurerm_user_assigned_identity.this.client_id
-    }
     user_assigned_identity = {
       resource_id = azurerm_user_assigned_identity.this.id
     }

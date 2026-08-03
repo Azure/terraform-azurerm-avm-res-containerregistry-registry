@@ -125,14 +125,9 @@ Default: `false`
 Description: Controls the Customer managed key configuration on this resource. The following properties can be specified:
 - `key_vault_resource_id` - (Required) Resource ID of the Key Vault that the customer managed key belongs to.
 - `key_name` - (Required) Specifies the name of the Customer Managed Key Vault Key.
-- `key_version` - (Optional) The version of the Customer Managed Key Vault Key. Ignored when `direct_values.key_vault_key_id` already includes a version.
-- `direct_values` - (Optional) Values to pass directly to the Container Registry encryption block. When supplied, the module skips its internal Key Vault Key and User Assigned Identity data source lookups. Use this when the key and identity are created in the same Terraform apply. The identity's `resource_id` must still be supplied through `user_assigned_identity` so the module can verify that it is assigned to the Container Registry.
-  - `key_vault_key_id` - (Required) The full Key Vault Key ID/URI, either versionless (for example, `https://<vault>.vault.azure.net/keys/<key>`) or versioned (for example, `https://<vault>.vault.azure.net/keys/<key>/<version>`).
-  - `identity_client_id` - (Required) The Client ID of the User Assigned Identity that has access to the key.
+- `key_version` - (Optional) The version of the Customer Managed Key Vault Key.
 - `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key.
   - `resource_id` - (Required) The resource ID of the User Assigned Identity that has access to the key.
-
-Supplying `direct_values` lets the customer managed key, identity, and this Container Registry be created in a single `terraform apply`, without relying on `depends_on` to defer the module's internal data source reads. Terraform can determine that the object is present during planning even when its values are not known until apply.
 
 Type:
 
@@ -141,13 +136,29 @@ object({
     key_vault_resource_id = string
     key_name              = string
     key_version           = optional(string, null)
-    direct_values = optional(object({
-      key_vault_key_id   = string
-      identity_client_id = string
-    }), null)
     user_assigned_identity = optional(object({
       resource_id = string
     }), null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_customer_managed_key_direct_values"></a> [customer\_managed\_key\_direct\_values](#input\_customer\_managed\_key\_direct\_values)
+
+Description: Optional values to pass directly to the Container Registry customer-managed-key encryption block. Use this together with `customer_managed_key` when the key and identity are created in the same Terraform apply.
+
+- `key_vault_key_id` - (Required) The full Key Vault Key ID/URI, either versionless (for example, `https://<vault>.vault.azure.net/keys/<key>`) or versioned (for example, `https://<vault>.vault.azure.net/keys/<key>/<version>`).
+- `identity_client_id` - (Required) The Client ID of the User Assigned Identity that has access to the key.
+
+When supplied, the module skips its internal Key Vault Key and User Assigned Identity data source lookups. The identity's resource ID must still be supplied through `customer_managed_key.user_assigned_identity` so the module can verify that it is assigned to the Container Registry. Terraform can determine that this object is present during planning even when its values are not known until apply.
+
+Type:
+
+```hcl
+object({
+    key_vault_key_id   = string
+    identity_client_id = string
   })
 ```
 
