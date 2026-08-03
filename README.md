@@ -144,6 +144,26 @@ object({
 
 Default: `null`
 
+### <a name="input_customer_managed_key_direct_values"></a> [customer\_managed\_key\_direct\_values](#input\_customer\_managed\_key\_direct\_values)
+
+Description: Optional values to pass directly to the Container Registry customer-managed-key encryption block. Use this together with `customer_managed_key` when the key and identity are created in the same Terraform apply.
+
+- `key_vault_key_id` - (Required) The full Key Vault Key ID/URI, either versionless (for example, `https://<vault>.vault.azure.net/keys/<key>`) or versioned (for example, `https://<vault>.vault.azure.net/keys/<key>/<version>`).
+- `identity_client_id` - (Required) The Client ID of the User Assigned Identity that has access to the key.
+
+When supplied, the module skips its internal Key Vault Key and User Assigned Identity data source lookups. The identity's resource ID must still be supplied through `customer_managed_key.user_assigned_identity` so the module can verify that it is assigned to the Container Registry. Terraform can determine that this object is present during planning even when its values are not known until apply.
+
+Type:
+
+```hcl
+object({
+    key_vault_key_id   = string
+    identity_client_id = string
+  })
+```
+
+Default: `null`
+
 ### <a name="input_data_endpoint_enabled"></a> [data\_endpoint\_enabled](#input\_data\_endpoint\_enabled)
 
 Description: Specifies whether to enable dedicated data endpoints for this Container Registry.  Requires Premium SKU.

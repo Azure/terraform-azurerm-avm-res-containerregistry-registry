@@ -122,6 +122,10 @@ module "containerregistry" {
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  customer_managed_key_direct_values = {
+    key_vault_key_id   = azurerm_key_vault_key.key.versionless_id
+    identity_client_id = azurerm_user_assigned_identity.this.client_id
+  }
   customer_managed_key = {
     key_vault_resource_id = azurerm_key_vault.this.id
     key_name              = azurerm_key_vault_key.key.name

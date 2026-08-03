@@ -40,6 +40,27 @@ Controls the Customer managed key configuration on this resource. The following 
 DESCRIPTION
 }
 
+variable "customer_managed_key_direct_values" {
+  type = object({
+    key_vault_key_id   = string
+    identity_client_id = string
+  })
+  default     = null
+  description = <<DESCRIPTION
+Optional values to pass directly to the Container Registry customer-managed-key encryption block. Use this together with `customer_managed_key` when the key and identity are created in the same Terraform apply.
+
+- `key_vault_key_id` - (Required) The full Key Vault Key ID/URI, either versionless (for example, `https://<vault>.vault.azure.net/keys/<key>`) or versioned (for example, `https://<vault>.vault.azure.net/keys/<key>/<version>`).
+- `identity_client_id` - (Required) The Client ID of the User Assigned Identity that has access to the key.
+
+When supplied, the module skips its internal Key Vault Key and User Assigned Identity data source lookups. The identity's resource ID must still be supplied through `customer_managed_key.user_assigned_identity` so the module can verify that it is assigned to the Container Registry. Terraform can determine that this object is present during planning even when its values are not known until apply.
+DESCRIPTION
+
+  validation {
+    condition     = var.customer_managed_key_direct_values == null || can(regex("^https://[^/]+/keys/[^/]+(/[0-9a-fA-F]{32})?$", var.customer_managed_key_direct_values.key_vault_key_id))
+    error_message = "`customer_managed_key_direct_values.key_vault_key_id` must be a valid Key Vault key ID/URI, e.g. `https://<vault-name>.vault.azure.net/keys/<key-name>` (versionless) or `https://<vault-name>.vault.azure.net/keys/<key-name>/<version>` (versioned)."
+  }
+}
+
 variable "diagnostic_settings" {
   type = map(object({
     name                                     = optional(string, null)

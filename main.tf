@@ -11,8 +11,8 @@ resource "azurerm_container_registry" "this" {
     for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}
 
     content {
-      identity_client_id = data.azurerm_user_assigned_identity.this[0].client_id
-      key_vault_key_id   = encryption.value.key_version != null ? "${data.azurerm_key_vault_key.this[0].versionless_id}/${encryption.value.key_version}" : data.azurerm_key_vault_key.this[0].versionless_id
+      identity_client_id = local.customer_managed_key_identity_client_id
+      key_vault_key_id   = local.customer_managed_key_key_vault_key_id
     }
   }
   export_policy_enabled                 = var.export_policy_enabled
@@ -81,6 +81,14 @@ resource "azurerm_container_registry" "this" {
     precondition {
       condition     = var.customer_managed_key != null && contains(var.managed_identities.user_assigned_resource_ids, try(var.customer_managed_key.user_assigned_identity.resource_id, "null")) || var.customer_managed_key == null
       error_message = "The user assigned managed identity for the customer managed key encryption must be assigned to the container registry."
+    }
+    precondition {
+      condition     = var.customer_managed_key_direct_values == null || var.customer_managed_key != null
+      error_message = "`customer_managed_key` must be supplied when `customer_managed_key_direct_values` is set."
+    }
+    precondition {
+      condition     = var.customer_managed_key_direct_values == null || var.customer_managed_key == null || var.customer_managed_key.key_version == null || !can(regex("^https://[^/]+/keys/[^/]+/[0-9a-fA-F]{32}$", var.customer_managed_key_direct_values.key_vault_key_id))
+      error_message = "`customer_managed_key.key_version` must not be set when `customer_managed_key_direct_values.key_vault_key_id` already includes a version segment. Supply the version once, either embedded in `key_vault_key_id` or via `key_version`, not both."
     }
   }
 }
