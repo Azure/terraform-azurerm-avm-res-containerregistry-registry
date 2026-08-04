@@ -4,9 +4,6 @@ resource "azapi_resource" "this" {
   parent_id = var.parent_id
 
   body = {
-    identity = {
-      type = "SystemAssigned"
-    }
     properties = {
       loginServer = var.login_server
       authCredentials = [
@@ -19,17 +16,23 @@ resource "azapi_resource" "this" {
     }
   }
 
+  # System-assigned managed identity is declared via the dedicated `identity`
+  # block (a stable computed attribute stored in state), not inside `body`.
+  # Declaring it in `body` makes AzAPI drop the read-only `identity.principalId`
+  # on refresh, breaking idempotency for anything consuming `principal_id`.
+  identity {
+    type = "SystemAssigned"
+  }
+
   # loginServer identifies the upstream the credentials belong to; changing it
   # re-targets the credential set and requires replacement.
   replace_triggers_refs = [
     "properties.loginServer",
   ]
 
-  # Export the system-assigned identity so callers can grant it Key Vault access.
-  response_export_values = [
-    "identity.principalId",
-    "identity.tenantId",
-  ]
+  # No read-only body properties are needed; the identity principal/tenant IDs
+  # are surfaced through the `identity` block attributes instead.
+  response_export_values = []
 
   retry = var.retry
 
