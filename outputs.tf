@@ -27,7 +27,7 @@ DESCRIPTION
 
 output "credential_sets" {
   description = <<DESCRIPTION
-A map of the Container Registry credential sets created by the module. The map key matches the key of the `var.cache_rules` entry that requested it. Each value exposes discrete attributes:
+A map of the Container Registry credential sets created by the module. The map key matches the key supplied to `var.credential_sets`. Each value exposes discrete attributes:
 
 - `name` - The name of the credential set.
 - `resource_id` - The resource ID of the credential set.

@@ -70,7 +70,9 @@ resource "time_sleep" "wait_for_kv_rbac" {
 resource "azurerm_key_vault_secret" "docker_username" {
   key_vault_id = azurerm_key_vault.this.id
   name         = "docker-username"
-  value        = "exampleuser" # Replace with a real Docker Hub username in production.
+  # These placeholders make the credential set unhealthy and cannot support a
+  # live image pull; this example validates wiring only.
+  value = "exampleuser"
 
   depends_on = [time_sleep.wait_for_kv_rbac]
 }
@@ -78,7 +80,7 @@ resource "azurerm_key_vault_secret" "docker_username" {
 resource "azurerm_key_vault_secret" "docker_password" {
   key_vault_id = azurerm_key_vault.this.id
   name         = "docker-password"
-  value        = "example-access-token" # Replace with a real Docker Hub token in production.
+  value        = "example-access-token"
 
   depends_on = [time_sleep.wait_for_kv_rbac]
 }
@@ -91,24 +93,31 @@ module "containerregistry" {
   # source             = "Azure/avm-res-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  credential_sets = {
+    dockerhub = {
+      name         = "dockerhub-credentials"
+      login_server = "docker.io"
+      auth_credentials = [
+        {
+          username_secret_identifier = azurerm_key_vault_secret.docker_username.versionless_id
+          password_secret_identifier = azurerm_key_vault_secret.docker_password.versionless_id
+        }
+      ]
+    }
+  }
   cache_rules = {
-    # Authenticated pull from Docker Hub via a credential set (Docker Hub is
-    # rate-limited, so credentials are required). The source repository must be
-    # the fully-qualified upstream path.
+    # Both Docker Hub rules share the same registry-level credential set.
     dockerhub_nginx = {
-      name              = "dockerhub-nginx"
-      source_repository = "docker.io/library/nginx"
-      target_repository = "nginx"
-      credential_set = {
-        name         = "dockerhub-credentials"
-        login_server = "docker.io"
-        auth_credentials = [
-          {
-            username_secret_identifier = azurerm_key_vault_secret.docker_username.versionless_id
-            password_secret_identifier = azurerm_key_vault_secret.docker_password.versionless_id
-          }
-        ]
-      }
+      name               = "dockerhub-nginx"
+      source_repository  = "docker.io/library/nginx"
+      target_repository  = "nginx"
+      credential_set_key = "dockerhub"
+    }
+    dockerhub_alpine = {
+      name               = "dockerhub-alpine"
+      source_repository  = "docker.io/library/alpine"
+      target_repository  = "alpine"
+      credential_set_key = "dockerhub"
     }
     # Unauthenticated pull from Microsoft Container Registry (public, no
     # credential set required).
@@ -126,7 +135,7 @@ module "containerregistry" {
 # the discrete `principal_id` so we can create the role assignment without a
 # plan-time computed `for_each` (a direct reference to a single map entry).
 resource "azurerm_role_assignment" "credential_set_kv_secrets_user" {
-  principal_id         = module.containerregistry.credential_sets["dockerhub_nginx"].principal_id
+  principal_id         = module.containerregistry.credential_sets["dockerhub"].principal_id
   scope                = azurerm_key_vault.this.id
   role_definition_name = "Key Vault Secrets User"
 }

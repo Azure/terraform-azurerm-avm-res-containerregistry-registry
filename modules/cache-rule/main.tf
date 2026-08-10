@@ -18,9 +18,7 @@ resource "azapi_resource" "this" {
     "properties.targetRepository",
   ]
 
-  response_export_values = [
-    "properties.provisioningState",
-  ]
+  response_export_values = []
 
   retry = var.retry
 

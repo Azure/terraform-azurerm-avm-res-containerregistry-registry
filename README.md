@@ -48,7 +48,7 @@ Both authorization modes remain supported. When switching an existing registry t
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.3.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.8)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
@@ -129,32 +129,49 @@ Each object supports the following:
 - `name` - (Required) The name of the cache rule. 5-50 characters, letters, numbers and hyphens.
 - `source_repository` - (Required) The fully-qualified upstream source repository, including the registry host, e.g. `docker.io/library/nginx` (Docker Hub) or `mcr.microsoft.com/mcr/hello-world` (Microsoft Container Registry).
 - `target_repository` - (Required) The target repository in this registry where cached images are stored, e.g. `nginx`.
-- `credential_set` - (Optional) Credential set used to authenticate to the upstream registry. Required for rate-limited or private upstreams such as Docker Hub; omit for public upstreams such as MCR.
-  - `name` - (Required) The name of the credential set. 5-50 characters, letters, numbers and hyphens.
-  - `login_server` - (Optional) The upstream login server the credentials authenticate to, e.g. `docker.io`.
-  - `auth_credentials` - (Required) A list of authentication credentials (usually one). Each has:
-    - `name` - (Optional) The credential name. Defaults to `Credential1`.
-    - `username_secret_identifier` - (Required) Key Vault secret URI holding the upstream username.
-    - `password_secret_identifier` - (Required) Key Vault secret URI holding the upstream password.
+- `credential_set_key` - (Optional) Key of a module-managed credential set in `var.credential_sets`. Multiple cache rules can reference the same key.
+- `credential_set_resource_id` - (Optional) ARM resource ID of an existing credential set managed outside this module.
 
 > [!NOTE]
-> When a `credential_set` is supplied, its system-assigned managed identity must be granted read access to the referenced Key Vault secrets (for example the `Key Vault Secrets User` role). This is the **caller's responsibility**; use the `credential_sets` output's `principal_id` to create the role assignment. See the `cache-rules` example.
+> `credential_set_key` and `credential_set_resource_id` are mutually exclusive. When a module-managed credential set is referenced, its system-assigned managed identity must be granted read access to the referenced Key Vault secrets (for example the `Key Vault Secrets User` role). This is the **caller's responsibility**; use the matching key in the `credential_sets` output to obtain its `principal_id`. See the `cache-rules` example.
 
 Type:
 
 ```hcl
 map(object({
-    name              = string
-    source_repository = string
-    target_repository = string
-    credential_set = optional(object({
-      name         = string
-      login_server = optional(string)
-      auth_credentials = list(object({
-        name                       = optional(string, "Credential1")
-        username_secret_identifier = string
-        password_secret_identifier = string
-      }))
+    name                       = string
+    source_repository          = string
+    target_repository          = string
+    credential_set_key         = optional(string)
+    credential_set_resource_id = optional(string)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_credential_sets"></a> [credential\_sets](#input\_credential\_sets)
+
+Description: A map of registry-level credential sets that cache rules can share. The map key is deliberately arbitrary and is referenced by `cache_rules[*].credential_set_key`.
+
+- `name` - (Required) The name of the credential set. Names must be unique across this map, ignoring case.
+- `login_server` - (Required) The upstream login server the credentials authenticate to, e.g. `docker.io`. Changing this value replaces the credential set, creates a new `principal_id`, and requires the caller to update any Key Vault role assignment for that identity.
+- `auth_credentials` - (Required) A list of authentication credentials (usually one). Each has:
+  - `name` - (Optional) The credential name. Defaults to `Credential1`.
+  - `username_secret_identifier` - (Required) Key Vault secret URI holding the upstream username.
+  - `password_secret_identifier` - (Required) Key Vault secret URI holding the upstream password.
+
+The system-assigned managed identity of each credential set must be granted read access to its referenced Key Vault secrets. This is the caller's responsibility; use the matching key in the `credential_sets` output to obtain its `principal_id`.
+
+Type:
+
+```hcl
+map(object({
+    name         = string
+    login_server = string
+    auth_credentials = list(object({
+      name                       = optional(string, "Credential1")
+      username_secret_identifier = string
+      password_secret_identifier = string
     }))
   }))
 ```
@@ -640,7 +657,7 @@ Description: A map of the Container Registry cache rules created by the module. 
 
 ### <a name="output_credential_sets"></a> [credential\_sets](#output\_credential\_sets)
 
-Description: A map of the Container Registry credential sets created by the module. The map key matches the key of the `var.cache_rules` entry that requested it. Each value exposes discrete attributes:
+Description: A map of the Container Registry credential sets created by the module. The map key matches the key supplied to `var.credential_sets`. Each value exposes discrete attributes:
 
 - `name` - The name of the credential set.
 - `resource_id` - The resource ID of the credential set.

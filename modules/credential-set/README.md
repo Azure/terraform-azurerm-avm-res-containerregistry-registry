@@ -8,12 +8,14 @@ A credential set stores a reference to Key Vault secrets (username / password) t
 
 Granting Key Vault access to the credential set's system-assigned identity is the **caller's responsibility** — this submodule only exports the `principal_id` so the caller can create the role assignment.
 
+The `login_server` input is required because it identifies the upstream registry these credentials authenticate to. Changing it replaces the credential set, creates a new `principal_id`, and requires the caller to update the corresponding Key Vault role assignment.
+
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.3.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.8)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (>= 2.0, < 3.0)
 
@@ -48,6 +50,12 @@ list(object({
   }))
 ```
 
+### <a name="input_login_server"></a> [login\_server](#input\_login\_server)
+
+Description: The login server of the upstream registry the credentials authenticate to (e.g. `docker.io` for Docker Hub). Changing this value replaces the credential set, creates a new `principal_id`, and requires the caller to update any Key Vault role assignment for that identity.
+
+Type: `string`
+
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description: The name of the credential set. Must be 5-50 characters long and can only contain letters, numbers and hyphens.
@@ -63,14 +71,6 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
-
-### <a name="input_login_server"></a> [login\_server](#input\_login\_server)
-
-Description: The login server of the upstream registry the credentials authenticate to (e.g. `docker.io` for Docker Hub).
-
-Type: `string`
-
-Default: `null`
 
 ### <a name="input_resource_types"></a> [resource\_types](#input\_resource\_types)
 

@@ -47,8 +47,8 @@ DESCRIPTION
 
 variable "login_server" {
   type        = string
-  default     = null
-  description = "The login server of the upstream registry the credentials authenticate to (e.g. `docker.io` for Docker Hub)."
+  description = "The login server of the upstream registry the credentials authenticate to (e.g. `docker.io` for Docker Hub). Changing this value replaces the credential set, creates a new `principal_id`, and requires the caller to update any Key Vault role assignment for that identity."
+  nullable    = false
 }
 
 variable "resource_types" {

@@ -83,8 +83,15 @@ resource "azurerm_container_registry" "this" {
       error_message = "The user assigned managed identity for the customer managed key encryption must be assigned to the container registry."
     }
     precondition {
-      condition     = length(var.cache_rules) == 0 || var.sku == "Premium"
-      error_message = "The Premium SKU is required when cache_rules are defined."
+      condition     = length(var.cache_rules) == 0 && length(var.credential_sets) == 0 || var.sku == "Premium"
+      error_message = "The Premium SKU is required when cache_rules or credential_sets are defined."
+    }
+    precondition {
+      condition = alltrue([
+        for cache_rule in values(var.cache_rules) :
+        cache_rule.credential_set_key == null || contains(keys(var.credential_sets), cache_rule.credential_set_key)
+      ])
+      error_message = "Every non-null `credential_set_key` must exist in `credential_sets`. Offending keys: ${join(", ", [for cache_rule in values(var.cache_rules) : cache_rule.credential_set_key if cache_rule.credential_set_key != null && !contains(keys(var.credential_sets), cache_rule.credential_set_key)])}."
     }
   }
 }
