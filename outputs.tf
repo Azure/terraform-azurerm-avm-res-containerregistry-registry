@@ -10,6 +10,40 @@ output "admin_username" {
   value       = azurerm_container_registry.this.admin_username
 }
 
+output "cache_rules" {
+  description = <<DESCRIPTION
+A map of the Container Registry cache rules created by the module. The map key matches the key supplied to `var.cache_rules`. Each value exposes discrete attributes:
+
+- `name` - The name of the cache rule.
+- `resource_id` - The resource ID of the cache rule.
+DESCRIPTION
+  value = {
+    for key, cache_rule in module.cache_rule : key => {
+      name        = cache_rule.name
+      resource_id = cache_rule.resource_id
+    }
+  }
+}
+
+output "credential_sets" {
+  description = <<DESCRIPTION
+A map of the Container Registry credential sets created by the module. The map key matches the key supplied to `var.credential_sets`. Each value exposes discrete attributes:
+
+- `name` - The name of the credential set.
+- `resource_id` - The resource ID of the credential set.
+- `principal_id` - The principal ID of the credential set's system-assigned managed identity. Grant this identity read access to the referenced Key Vault secrets.
+- `tenant_id` - The tenant ID of the credential set's system-assigned managed identity.
+DESCRIPTION
+  value = {
+    for key, credential_set in module.credential_set : key => {
+      name         = credential_set.name
+      resource_id  = credential_set.resource_id
+      principal_id = credential_set.principal_id
+      tenant_id    = credential_set.tenant_id
+    }
+  }
+}
+
 output "data_endpoint_host_names" {
   description = "The host names of the dedicated data endpoints for the Container Registry."
   value       = azurerm_container_registry.this.data_endpoint_host_names

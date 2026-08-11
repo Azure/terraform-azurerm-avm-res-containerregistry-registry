@@ -48,7 +48,7 @@ Both authorization modes remain supported. When switching an existing registry t
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.3.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.8)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
@@ -119,6 +119,64 @@ Description: Specifies whether anonymous (unauthenticated) pull access to this C
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_cache_rules"></a> [cache\_rules](#input\_cache\_rules)
+
+Description: A map of Container Registry cache rules. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time. Cache rules require the **Premium** SKU.
+
+Each object supports the following:
+
+- `name` - (Required) The name of the cache rule. 5-50 characters, letters, numbers and hyphens.
+- `source_repository` - (Required) The fully-qualified upstream source repository, including the registry host, e.g. `docker.io/library/nginx` (Docker Hub) or `mcr.microsoft.com/mcr/hello-world` (Microsoft Container Registry).
+- `target_repository` - (Required) The target repository in this registry where cached images are stored, e.g. `nginx`.
+- `credential_set_key` - (Optional) Key of a module-managed credential set in `var.credential_sets`. Multiple cache rules can reference the same key.
+- `credential_set_resource_id` - (Optional) ARM resource ID of an existing credential set managed outside this module.
+
+> [!NOTE]
+> `credential_set_key` and `credential_set_resource_id` are mutually exclusive. When a module-managed credential set is referenced, its system-assigned managed identity must be granted read access to the referenced Key Vault secrets (for example the `Key Vault Secrets User` role). This is the **caller's responsibility**; use the matching key in the `credential_sets` output to obtain its `principal_id`. See the `cache-rules` example.
+
+Type:
+
+```hcl
+map(object({
+    name                       = string
+    source_repository          = string
+    target_repository          = string
+    credential_set_key         = optional(string)
+    credential_set_resource_id = optional(string)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_credential_sets"></a> [credential\_sets](#input\_credential\_sets)
+
+Description: A map of registry-level credential sets that cache rules can share. The map key is deliberately arbitrary and is referenced by `cache_rules[*].credential_set_key`.
+
+- `name` - (Required) The name of the credential set. Names must be unique across this map, ignoring case.
+- `login_server` - (Required) The upstream login server the credentials authenticate to, e.g. `docker.io`. Changing this value replaces the credential set, creates a new `principal_id`, and requires the caller to update any Key Vault role assignment for that identity.
+- `auth_credentials` - (Required) A list of authentication credentials (usually one). Each has:
+  - `name` - (Optional) The credential name. Defaults to `Credential1`.
+  - `username_secret_identifier` - (Required) Key Vault secret URI holding the upstream username.
+  - `password_secret_identifier` - (Required) Key Vault secret URI holding the upstream password.
+
+The system-assigned managed identity of each credential set must be granted read access to its referenced Key Vault secrets. This is the caller's responsibility; use the matching key in the `credential_sets` output to obtain its `principal_id`.
+
+Type:
+
+```hcl
+map(object({
+    name         = string
+    login_server = string
+    auth_credentials = list(object({
+      name                       = optional(string, "Credential1")
+      username_secret_identifier = string
+      password_secret_identifier = string
+    }))
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
@@ -411,6 +469,24 @@ Type: `bool`
 
 Default: `false`
 
+### <a name="input_resource_types"></a> [resource\_types](#input\_resource\_types)
+
+Description: A map controlling the AzAPI resource type (and API version) used for the cache rule and credential set child resources. Override to pin a different (stable) API version.
+
+- `cache_rule` - The `Microsoft.ContainerRegistry/registries/cacheRules` resource type and API version to use.
+- `credential_set` - The `Microsoft.ContainerRegistry/registries/credentialSets` resource type and API version to use.
+
+Type:
+
+```hcl
+object({
+    cache_rule     = optional(string, "Microsoft.ContainerRegistry/registries/cacheRules@2025-11-01")
+    credential_set = optional(string, "Microsoft.ContainerRegistry/registries/credentialSets@2025-11-01")
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_retention_policy_in_days"></a> [retention\_policy\_in\_days](#input\_retention\_policy\_in\_days)
 
 Description: The number of days to retain untagged manifests. Only applicable for Premium SKU.  
@@ -419,6 +495,26 @@ Set to `null` to disable the retention policy. Defaults to `7`.
 Type: `number`
 
 Default: `7`
+
+### <a name="input_retry"></a> [retry](#input\_retry)
+
+Description: Retry configuration applied to every `azapi` resource managed by the module's cache rule and credential set submodules. Defaults to `null` (no custom retry).
+
+- `error_message_regex`  - (Optional) Regex patterns matching error messages that trigger a retry.
+- `interval_seconds`     - (Optional) Initial interval between retries in seconds.
+- `max_interval_seconds` - (Optional) Maximum interval between retries in seconds.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string))
+    interval_seconds     = optional(number)
+    max_interval_seconds = optional(number)
+  })
+```
+
+Default: `null`
 
 ### <a name="input_role_assignment_mode"></a> [role\_assignment\_mode](#input\_role\_assignment\_mode)
 
@@ -515,6 +611,23 @@ Type: `map(string)`
 
 Default: `null`
 
+### <a name="input_timeouts"></a> [timeouts](#input\_timeouts)
+
+Description: Per-operation timeouts applied to every `azapi` resource managed by the module's cache rule and credential set submodules. Defaults to `null` (provider defaults). Each value is a Go duration string (e.g. `30m`, `1h`).
+
+Type:
+
+```hcl
+object({
+    create = optional(string)
+    read   = optional(string)
+    update = optional(string)
+    delete = optional(string)
+  })
+```
+
+Default: `null`
+
 ### <a name="input_zone_redundancy_enabled"></a> [zone\_redundancy\_enabled](#input\_zone\_redundancy\_enabled)
 
 Description: Specifies whether zone redundancy is enabled.  Modifying this forces a new resource to be created.
@@ -534,6 +647,22 @@ Description: The password associated with the Container Registry admin account.
 ### <a name="output_admin_username"></a> [admin\_username](#output\_admin\_username)
 
 Description: The username associated with the Container Registry admin account.
+
+### <a name="output_cache_rules"></a> [cache\_rules](#output\_cache\_rules)
+
+Description: A map of the Container Registry cache rules created by the module. The map key matches the key supplied to `var.cache_rules`. Each value exposes discrete attributes:
+
+- `name` - The name of the cache rule.
+- `resource_id` - The resource ID of the cache rule.
+
+### <a name="output_credential_sets"></a> [credential\_sets](#output\_credential\_sets)
+
+Description: A map of the Container Registry credential sets created by the module. The map key matches the key supplied to `var.credential_sets`. Each value exposes discrete attributes:
+
+- `name` - The name of the credential set.
+- `resource_id` - The resource ID of the credential set.
+- `principal_id` - The principal ID of the credential set's system-assigned managed identity. Grant this identity read access to the referenced Key Vault secrets.
+- `tenant_id` - The tenant ID of the credential set's system-assigned managed identity.
 
 ### <a name="output_data_endpoint_host_names"></a> [data\_endpoint\_host\_names](#output\_data\_endpoint\_host\_names)
 
@@ -578,6 +707,18 @@ Description: The system assigned managed identity tenant ID of the parent resour
 ## Modules
 
 The following Modules are called:
+
+### <a name="module_cache_rule"></a> [cache\_rule](#module\_cache\_rule)
+
+Source: ./modules/cache-rule
+
+Version:
+
+### <a name="module_credential_set"></a> [credential\_set](#module\_credential\_set)
+
+Source: ./modules/credential-set
+
+Version:
 
 ### <a name="module_scope_maps"></a> [scope\_maps](#module\_scope\_maps)
 
