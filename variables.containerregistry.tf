@@ -7,7 +7,7 @@ variable "admin_enabled" {
 variable "anonymous_pull_enabled" {
   type        = bool
   default     = false
-  description = "Specifies whether anonymous (unauthenticated) pull access to this Container Registry is allowed.  Requries Standard or Premium SKU."
+  description = "Specifies whether anonymous (unauthenticated) pull access to this Container Registry is allowed.  Requires Standard or Premium SKU."
 }
 
 variable "data_endpoint_enabled" {
