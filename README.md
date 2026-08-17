@@ -114,7 +114,7 @@ Default: `false`
 
 ### <a name="input_anonymous_pull_enabled"></a> [anonymous\_pull\_enabled](#input\_anonymous\_pull\_enabled)
 
-Description: Specifies whether anonymous (unauthenticated) pull access to this Container Registry is allowed.  Requries Standard or Premium SKU.
+Description: Specifies whether anonymous (unauthenticated) pull access to this Container Registry is allowed.  Requires Standard or Premium SKU.
 
 Type: `bool`
 
