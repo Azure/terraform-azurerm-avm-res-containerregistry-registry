@@ -73,8 +73,6 @@ The following resources are used by this module:
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
-- [azurerm_key_vault_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) (data source)
-- [azurerm_user_assigned_identity.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -181,21 +179,21 @@ Default: `{}`
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
 Description: Controls the Customer managed key configuration on this resource. The following properties can be specified:
-- `key_vault_resource_id` - (Required) Resource ID of the Key Vault that the customer managed key belongs to.
-- `key_name` - (Required) Specifies the name of the Customer Managed Key Vault Key.
-- `key_version` - (Optional) The version of the Customer Managed Key Vault Key.
+- `key_vault_key_uri` - (Required) The full key identifier of the Customer Managed Key Vault Key, for example `https://<vault-name>.vault.azure.net/keys/<key-name>`. Omit the trailing version segment to let the Container Registry follow key rotations automatically. Because the host is supplied in full, the same input works in sovereign clouds and against Managed HSM.
 - `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key.
-  - `resource_id` - (Required) The resource ID of the User Assigned Identity that has access to the key.
+  - `client_id` - (Required) The Client ID of the User Assigned Identity that has access to the key.
+
+Build `key_vault_key_uri` and `client_id` from the resources you own, rather than from data sources, so the values stay known at plan time and Terraform orders the Container Registry after the key and the identity.
+
+The same identity must also be assigned to the Container Registry through `managed_identities.user_assigned_resource_ids`.
 
 Type:
 
 ```hcl
 object({
-    key_vault_resource_id = string
-    key_name              = string
-    key_version           = optional(string, null)
+    key_vault_key_uri = string
     user_assigned_identity = optional(object({
-      resource_id = string
+      client_id = string
     }), null)
   })
 ```
