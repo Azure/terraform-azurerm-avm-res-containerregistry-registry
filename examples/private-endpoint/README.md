@@ -11,7 +11,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 4, < 5.0.0"
+      version = ">= 4, < 5.0.2"
     }
   }
 }
@@ -28,7 +28,7 @@ provider "azurerm" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "0.4.0"
+  version = "0.4.3"
 }
 
 # This is required for resource modules
@@ -85,7 +85,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.6)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4, < 5.0.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4, < 5.0.2)
 
 ## Resources
 
@@ -123,7 +123,7 @@ Version:
 
 Source: Azure/naming/azurerm
 
-Version: 0.4.0
+Version: 0.4.3
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
