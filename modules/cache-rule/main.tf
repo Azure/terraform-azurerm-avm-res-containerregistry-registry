@@ -11,6 +11,7 @@ resource "azapi_resource" "this" {
     }
   }
 
+  ignore_body_changes = length(var.ignore_body_changes.this) > 0 ? var.ignore_body_changes.this : null
   # Source and target repository define the cache mapping identity; changing
   # either re-targets the rule and requires replacement.
   replace_triggers_refs = [

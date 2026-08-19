@@ -50,7 +50,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.8)
 
-- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.81.0, < 5.0.0)
 
@@ -289,6 +289,30 @@ list(object({
 ```
 
 Default: `[]`
+
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
+
+Description: Body paths to ignore on the cache rule and credential set child resources, in dot notation. Use this to suppress plan diffs for properties mutated outside Terraform, such as those set by Azure Policy.
+
+- `cache_rule.this` - Paths to ignore on each `Microsoft.ContainerRegistry/registries/cacheRules` resource.
+- `credential_set.this` - Paths to ignore on each `Microsoft.ContainerRegistry/registries/credentialSets` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply. Adding a path still shows the pending diff in the same plan, and removing one does not resurface the suppressed diff until the next plan.
+
+Type:
+
+```hcl
+object({
+    cache_rule = optional(object({
+      this = optional(list(string), [])
+    }), {})
+    credential_set = optional(object({
+      this = optional(list(string), [])
+    }), {})
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
