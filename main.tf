@@ -11,8 +11,8 @@ resource "azurerm_container_registry" "this" {
     for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}
 
     content {
-      identity_client_id = data.azurerm_user_assigned_identity.this[0].client_id
-      key_vault_key_id   = encryption.value.key_version != null ? "${data.azurerm_key_vault_key.this[0].versionless_id}/${encryption.value.key_version}" : data.azurerm_key_vault_key.this[0].versionless_id
+      identity_client_id = try(encryption.value.user_assigned_identity.client_id, null)
+      key_vault_key_id   = encryption.value.key_vault_key_uri
     }
   }
   export_policy_enabled                 = var.export_policy_enabled
@@ -79,8 +79,12 @@ resource "azurerm_container_registry" "this" {
       error_message = "The Premium SKU is required if a customer managed key is defined."
     }
     precondition {
-      condition     = var.customer_managed_key != null && contains(var.managed_identities.user_assigned_resource_ids, try(var.customer_managed_key.user_assigned_identity.resource_id, "null")) || var.customer_managed_key == null
-      error_message = "The user assigned managed identity for the customer managed key encryption must be assigned to the container registry."
+      condition     = var.customer_managed_key == null || var.customer_managed_key.user_assigned_identity != null
+      error_message = "`customer_managed_key.user_assigned_identity` must be supplied because the Container Registry API identifies the encryption identity by client ID."
+    }
+    precondition {
+      condition     = var.customer_managed_key == null || length(var.managed_identities.user_assigned_resource_ids) > 0
+      error_message = "A user assigned managed identity must be assigned to the container registry via `managed_identities.user_assigned_resource_ids` when a customer managed key is defined."
     }
     precondition {
       condition     = length(var.cache_rules) == 0 && length(var.credential_sets) == 0 || var.sku == "Premium"

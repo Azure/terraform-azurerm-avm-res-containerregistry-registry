@@ -152,6 +152,65 @@ run "private_endpoint_lock_inheritance_disabled" {
   }
 }
 
+run "private_endpoint_defaults_to_the_registry_subresource" {
+  command   = apply
+  state_key = "private-endpoint-default-subresource"
+
+  variables {
+    private_endpoints = {
+      primary = {
+        ip_configurations = {
+          primary = {
+            name               = "ipconfig-default"
+            private_ip_address = "10.0.0.4"
+          }
+        }
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test/subnets/snet-test"
+      }
+    }
+  }
+
+  assert {
+    condition     = azurerm_private_endpoint.this["primary"].private_service_connection[0].subresource_names[0] == "registry"
+    error_message = "Omitting subresource_name should keep targeting the registry subresource, unchanged from earlier versions."
+  }
+
+  assert {
+    condition     = azurerm_private_endpoint.this["primary"].ip_configuration[0].member_name == "registry"
+    error_message = "Omitting subresource_name should keep the IP configuration member name unchanged."
+  }
+}
+
+run "private_endpoint_honours_an_explicit_subresource_name" {
+  command   = apply
+  state_key = "private-endpoint-explicit-subresource"
+
+  variables {
+    private_endpoints = {
+      primary = {
+        ip_configurations = {
+          primary = {
+            name               = "ipconfig-explicit"
+            private_ip_address = "10.0.0.5"
+          }
+        }
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test/subnets/snet-test"
+        subresource_name   = "registry_data_australiaeast"
+      }
+    }
+  }
+
+  assert {
+    condition     = azurerm_private_endpoint.this["primary"].private_service_connection[0].subresource_names[0] == "registry_data_australiaeast"
+    error_message = "An explicit subresource_name should reach the private service connection."
+  }
+
+  assert {
+    condition     = azurerm_private_endpoint.this["primary"].ip_configuration[0].subresource_name == "registry_data_australiaeast"
+    error_message = "An explicit subresource_name should reach the IP configuration."
+  }
+}
+
 run "invalid_private_endpoint_lock_kind" {
   command   = plan
   state_key = "invalid-private-endpoint-lock-kind"

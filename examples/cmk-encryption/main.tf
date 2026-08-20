@@ -123,10 +123,11 @@ module "containerregistry" {
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
   customer_managed_key = {
-    key_vault_resource_id = azurerm_key_vault.this.id
-    key_name              = azurerm_key_vault_key.key.name
+    # Built from the key resource, so the value is unknown at plan time and Terraform
+    # orders the registry after the key. Versionless, so the registry follows rotations.
+    key_vault_key_uri = azurerm_key_vault_key.key.versionless_id
     user_assigned_identity = {
-      resource_id = azurerm_user_assigned_identity.this.id
+      client_id = azurerm_user_assigned_identity.this.client_id
     }
   }
   managed_identities = {
