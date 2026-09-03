@@ -51,6 +51,21 @@ variable "login_server" {
   nullable    = false
 }
 
+variable "ignore_body_changes" {
+  type = object({
+    this = optional(list(string), [])
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Body paths to ignore for each `azapi_resource` this submodule manages, in dot notation. Use this to suppress plan diffs for properties mutated outside Terraform.
+
+- `this` - Paths to ignore on the `Microsoft.ContainerRegistry/registries/credentialSets` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "resource_types" {
   type = object({
     this = optional(string, "Microsoft.ContainerRegistry/registries/credentialSets@2025-11-01")

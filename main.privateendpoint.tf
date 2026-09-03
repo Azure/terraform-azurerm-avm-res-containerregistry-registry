@@ -13,7 +13,7 @@ resource "azurerm_private_endpoint" "this" {
     is_manual_connection           = false
     name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "pse-${var.name}"
     private_connection_resource_id = azurerm_container_registry.this.id
-    subresource_names              = ["registry"]
+    subresource_names              = [coalesce(each.value.subresource_name, "registry")]
   }
 
   dynamic "ip_configuration" {
@@ -22,8 +22,8 @@ resource "azurerm_private_endpoint" "this" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = "registry"
-      subresource_name   = "registry"
+      member_name        = coalesce(each.value.subresource_name, "registry")
+      subresource_name   = coalesce(each.value.subresource_name, "registry")
     }
   }
 
@@ -52,7 +52,7 @@ resource "azurerm_private_endpoint" "this_unmanaged_dns_zone_groups" {
     is_manual_connection           = false
     name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "pse-${var.name}"
     private_connection_resource_id = azurerm_container_registry.this.id
-    subresource_names              = ["registry"]
+    subresource_names              = [coalesce(each.value.subresource_name, "registry")]
   }
 
   dynamic "ip_configuration" {
@@ -61,8 +61,8 @@ resource "azurerm_private_endpoint" "this_unmanaged_dns_zone_groups" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = "registry"
-      subresource_name   = "registry"
+      member_name        = coalesce(each.value.subresource_name, "registry")
+      subresource_name   = coalesce(each.value.subresource_name, "registry")
     }
   }
 

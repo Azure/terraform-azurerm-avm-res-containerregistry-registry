@@ -63,6 +63,27 @@ DESCRIPTION
   }
 }
 
+variable "ignore_body_changes" {
+  type = object({
+    cache_rule = optional(object({
+      this = optional(list(string), [])
+    }), {})
+    credential_set = optional(object({
+      this = optional(list(string), [])
+    }), {})
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Body paths to ignore on the cache rule and credential set child resources, in dot notation. Use this to suppress plan diffs for properties mutated outside Terraform, such as those set by Azure Policy.
+
+- `cache_rule.this` - Paths to ignore on each `Microsoft.ContainerRegistry/registries/cacheRules` resource.
+- `credential_set.this` - Paths to ignore on each `Microsoft.ContainerRegistry/registries/credentialSets` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply. Adding a path still shows the pending diff in the same plan, and removing one does not resurface the suppressed diff until the next plan.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "resource_types" {
   type = object({
     cache_rule     = optional(string, "Microsoft.ContainerRegistry/registries/cacheRules@2025-11-01")

@@ -50,7 +50,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.8)
 
-- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.81.0, < 5.0.0)
 
@@ -73,8 +73,6 @@ The following resources are used by this module:
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
-- [azurerm_key_vault_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) (data source)
-- [azurerm_user_assigned_identity.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -181,21 +179,21 @@ Default: `{}`
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
 Description: Controls the Customer managed key configuration on this resource. The following properties can be specified:
-- `key_vault_resource_id` - (Required) Resource ID of the Key Vault that the customer managed key belongs to.
-- `key_name` - (Required) Specifies the name of the Customer Managed Key Vault Key.
-- `key_version` - (Optional) The version of the Customer Managed Key Vault Key.
+- `key_vault_key_uri` - (Required) The full key identifier of the Customer Managed Key Vault Key, for example `https://<vault-name>.vault.azure.net/keys/<key-name>`. Omit the trailing version segment to let the Container Registry follow key rotations automatically. Because the host is supplied in full, the same input works in sovereign clouds and against Managed HSM.
 - `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key.
-  - `resource_id` - (Required) The resource ID of the User Assigned Identity that has access to the key.
+  - `client_id` - (Required) The Client ID of the User Assigned Identity that has access to the key.
+
+Build `key_vault_key_uri` and `client_id` from the resources you own, rather than from data sources, so the values stay known at plan time and Terraform orders the Container Registry after the key and the identity.
+
+The same identity must also be assigned to the Container Registry through `managed_identities.user_assigned_resource_ids`.
 
 Type:
 
 ```hcl
 object({
-    key_vault_resource_id = string
-    key_name              = string
-    key_version           = optional(string, null)
+    key_vault_key_uri = string
     user_assigned_identity = optional(object({
-      resource_id = string
+      client_id = string
     }), null)
   })
 ```
@@ -291,6 +289,30 @@ list(object({
 ```
 
 Default: `[]`
+
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
+
+Description: Body paths to ignore on the cache rule and credential set child resources, in dot notation. Use this to suppress plan diffs for properties mutated outside Terraform, such as those set by Azure Policy.
+
+- `cache_rule.this` - Paths to ignore on each `Microsoft.ContainerRegistry/registries/cacheRules` resource.
+- `credential_set.this` - Paths to ignore on each `Microsoft.ContainerRegistry/registries/credentialSets` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply. Adding a path still shows the pending diff in the same plan, and removing one does not resurface the suppressed diff until the next plan.
+
+Type:
+
+```hcl
+object({
+    cache_rule = optional(object({
+      this = optional(list(string), [])
+    }), {})
+    credential_set = optional(object({
+      this = optional(list(string), [])
+    }), {})
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
@@ -389,6 +411,7 @@ Description: A map of private endpoints to create on the Container Registry. The
   - `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
 - `tags` - (Optional) A mapping of tags to assign to the private endpoint.
 - `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
+- `subresource_name` - (Optional) The target subresource of the private endpoint. The Container Registry exposes only `registry`, which is the default.
 - `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
 - `private_dns_zone_resource_ids` - (Optional) A set of resource IDs of private DNS zones to associate with the private endpoint. If not set, no zone groups will be created and the private endpoint will not be associated with any private DNS zones. DNS records must be managed external to this module.
 - `application_security_group_resource_ids` - (Optional) A map of resource IDs of application security groups to associate with the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
@@ -421,6 +444,7 @@ map(object({
     }), null)
     tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
+    subresource_name                        = optional(string, null)
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
     application_security_group_associations = optional(map(string), {})

@@ -17,7 +17,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.8)
 
-- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (>= 2.0, < 3.0)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
 ## Resources
 
@@ -71,6 +71,24 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
+
+Description: Body paths to ignore for each `azapi_resource` this submodule manages, in dot notation. Use this to suppress plan diffs for properties mutated outside Terraform.
+
+- `this` - Paths to ignore on the `Microsoft.ContainerRegistry/registries/credentialSets` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply.
+
+Type:
+
+```hcl
+object({
+    this = optional(list(string), [])
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_resource_types"></a> [resource\_types](#input\_resource\_types)
 
