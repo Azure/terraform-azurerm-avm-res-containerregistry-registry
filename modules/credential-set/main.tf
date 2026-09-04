@@ -1,8 +1,7 @@
 resource "azapi_resource" "this" {
-  type      = var.resource_types.this
   name      = var.name
   parent_id = var.parent_id
-
+  type      = var.resource_types.this
   body = {
     properties = {
       loginServer = var.login_server
@@ -15,6 +14,15 @@ resource "azapi_resource" "this" {
       ]
     }
   }
+  # loginServer identifies the upstream the credentials belong to; changing it
+  # re-targets the credential set and requires replacement.
+  replace_triggers_refs = [
+    "properties.loginServer",
+  ]
+  # No read-only body properties are needed; the identity principal/tenant IDs
+  # are surfaced through the `identity` block attributes instead.
+  response_export_values = []
+  retry                  = var.retry
 
   # System-assigned managed identity is declared via the dedicated `identity`
   # block (a stable computed attribute stored in state), not inside `body`.
@@ -23,18 +31,6 @@ resource "azapi_resource" "this" {
   identity {
     type = "SystemAssigned"
   }
-
-  # loginServer identifies the upstream the credentials belong to; changing it
-  # re-targets the credential set and requires replacement.
-  replace_triggers_refs = [
-    "properties.loginServer",
-  ]
-
-  # No read-only body properties are needed; the identity principal/tenant IDs
-  # are surfaced through the `identity` block attributes instead.
-  response_export_values = []
-
-  retry = var.retry
 
   dynamic "timeouts" {
     for_each = var.timeouts == null ? [] : [var.timeouts]
