@@ -229,3 +229,129 @@ run "invalid_private_endpoint_lock_kind" {
     var.private_endpoints,
   ]
 }
+
+run "private_endpoint_subresource_with_managed_dns" {
+  command   = apply
+  state_key = "private-endpoint-subresource-with-managed-dns"
+
+  variables {
+    private_endpoints = {
+      omitted = {
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test/subnets/snet-test"
+        ip_configurations = {
+          primary = {
+            name               = "primary"
+            private_ip_address = "10.0.0.4"
+          }
+        }
+      }
+      null_value = {
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test/subnets/snet-test"
+        subresource_name   = null
+        ip_configurations = {
+          primary = {
+            name               = "primary"
+            private_ip_address = "10.0.0.5"
+          }
+        }
+      }
+      explicit = {
+        private_dns_zone_resource_ids = ["/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/privateDnsZones/privatelink.azurecr.io"]
+        subnet_resource_id            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test/subnets/snet-test"
+        # A distinct mock-only value proves that the input is not replaced by the registry default.
+        subresource_name = "custom-subresource"
+        ip_configurations = {
+          primary = {
+            name               = "primary"
+            private_ip_address = "10.0.0.6"
+          }
+        }
+      }
+    }
+  }
+
+  assert {
+    condition = alltrue([
+      for key, endpoint in azurerm_private_endpoint.this :
+      endpoint.private_service_connection[0].subresource_names == tolist([key == "explicit" ? "custom-subresource" : "registry"]) &&
+      endpoint.ip_configuration[0].subresource_name == (key == "explicit" ? "custom-subresource" : "registry") &&
+      endpoint.ip_configuration[0].member_name == "registry"
+    ])
+    error_message = "Managed DNS endpoints must honor explicit subresources in connections and IP configurations, default omitted/null values to registry, and retain the registry member name."
+  }
+
+  assert {
+    condition     = length(azurerm_private_endpoint.this) == 3 && length(azurerm_private_endpoint.this_unmanaged_dns_zone_groups) == 0
+    error_message = "Managed DNS must create only the three module-managed private endpoints."
+  }
+
+  assert {
+    condition     = azurerm_private_endpoint.this["explicit"].private_dns_zone_group[0].name == "default"
+    error_message = "The default DNS zone group name must remain unchanged."
+  }
+
+  assert {
+    condition     = output.private_endpoints == tomap(azurerm_private_endpoint.this)
+    error_message = "The private endpoints output must continue exposing the module-managed endpoint resources."
+  }
+}
+
+run "private_endpoint_subresource_with_unmanaged_dns" {
+  command   = apply
+  state_key = "private-endpoint-subresource-with-unmanaged-dns"
+
+  variables {
+    private_endpoints = {
+      omitted = {
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test/subnets/snet-test"
+        ip_configurations = {
+          primary = {
+            name               = "primary"
+            private_ip_address = "10.0.0.4"
+          }
+        }
+      }
+      null_value = {
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test/subnets/snet-test"
+        subresource_name   = null
+        ip_configurations = {
+          primary = {
+            name               = "primary"
+            private_ip_address = "10.0.0.5"
+          }
+        }
+      }
+      explicit = {
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test/subnets/snet-test"
+        subresource_name   = "custom-subresource"
+        ip_configurations = {
+          primary = {
+            name               = "primary"
+            private_ip_address = "10.0.0.6"
+          }
+        }
+      }
+    }
+    private_endpoints_manage_dns_zone_group = false
+  }
+
+  assert {
+    condition = alltrue([
+      for key, endpoint in azurerm_private_endpoint.this_unmanaged_dns_zone_groups :
+      endpoint.private_service_connection[0].subresource_names == tolist([key == "explicit" ? "custom-subresource" : "registry"]) &&
+      endpoint.ip_configuration[0].subresource_name == (key == "explicit" ? "custom-subresource" : "registry") &&
+      endpoint.ip_configuration[0].member_name == "registry"
+    ])
+    error_message = "Unmanaged DNS endpoints must honor explicit subresources in connections and IP configurations, default omitted/null values to registry, and retain the registry member name."
+  }
+
+  assert {
+    condition     = length(azurerm_private_endpoint.this_unmanaged_dns_zone_groups) == 3 && length(azurerm_private_endpoint.this) == 0
+    error_message = "Unmanaged DNS must create only the three externally managed DNS private endpoints."
+  }
+
+  assert {
+    condition     = output.private_endpoints == tomap(azurerm_private_endpoint.this_unmanaged_dns_zone_groups)
+    error_message = "The private endpoints output must continue exposing the externally managed DNS endpoint resources."
+  }
+}
