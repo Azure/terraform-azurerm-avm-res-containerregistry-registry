@@ -24,6 +24,64 @@ variables {
   resource_group_name = "rg-test"
 }
 
+run "diagnostic_settings_disabled_by_default" {
+  command   = plan
+  state_key = "diagnostic-settings-disabled-by-default"
+
+  assert {
+    condition     = length(azurerm_monitor_diagnostic_setting.this) == 0
+    error_message = "Diagnostic settings should not be created unless configured."
+  }
+}
+
+run "diagnostic_settings_default_metrics" {
+  command   = plan
+  state_key = "diagnostic-settings-default-metrics"
+
+  variables {
+    diagnostic_settings = {
+      primary = {
+        workspace_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.OperationalInsights/workspaces/law-test"
+      }
+    }
+  }
+
+  assert {
+    condition     = toset([for metric in azurerm_monitor_diagnostic_setting.this["primary"].enabled_metric : metric.category]) == toset(["AllMetrics"])
+    error_message = "Diagnostic settings should configure AllMetrics through enabled_metric by default."
+  }
+
+  assert {
+    condition     = toset([for log in azurerm_monitor_diagnostic_setting.this["primary"].enabled_log : log.category_group]) == toset(["allLogs"])
+    error_message = "Diagnostic settings should continue to enable the allLogs category group by default."
+  }
+}
+
+run "diagnostic_settings_metrics_only" {
+  command   = plan
+  state_key = "diagnostic-settings-metrics-only"
+
+  variables {
+    diagnostic_settings = {
+      primary = {
+        log_groups            = []
+        metric_categories     = ["AllMetrics"]
+        workspace_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.OperationalInsights/workspaces/law-test"
+      }
+    }
+  }
+
+  assert {
+    condition     = toset([for metric in azurerm_monitor_diagnostic_setting.this["primary"].enabled_metric : metric.category]) == toset(["AllMetrics"])
+    error_message = "Explicit metric categories should be configured through enabled_metric without requiring logs."
+  }
+
+  assert {
+    condition     = length(azurerm_monitor_diagnostic_setting.this["primary"].enabled_log) == 0
+    error_message = "A metrics-only diagnostic setting should not enable any logs."
+  }
+}
+
 run "explicit_private_endpoint_lock" {
   command   = apply
   state_key = "explicit-private-endpoint-lock"
