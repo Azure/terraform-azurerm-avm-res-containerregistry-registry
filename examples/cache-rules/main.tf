@@ -127,7 +127,8 @@ module "containerregistry" {
       ]
     }
   }
-  sku = "Premium" # Premium SKU is required for cache rules.
+  enable_telemetry = false
+  sku              = "Premium" # Premium SKU is required for cache rules.
 }
 
 # The credential set's system-assigned identity must be able to read the Key Vault
