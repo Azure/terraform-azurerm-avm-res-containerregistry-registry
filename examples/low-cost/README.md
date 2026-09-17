@@ -47,6 +47,7 @@ module "containerregistry" {
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                     = module.naming.container_registry.name_unique
   resource_group_name      = azurerm_resource_group.this.name
+  enable_telemetry         = false
   retention_policy_in_days = null #ACR retention policy can only be applied when using the Premium Sku.
   sku                      = "Basic"
   # need to override this default setting because zone redundancy isn't supported on Basic SKU.

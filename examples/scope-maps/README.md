@@ -45,6 +45,7 @@ module "containerregistry" {
   # source             = "Azure/avm-res-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  enable_telemetry    = false
   # Create scope maps for different access levels
   scope_maps = {
     readonly = {
