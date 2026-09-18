@@ -127,7 +127,7 @@ module "containerregistry" {
       ]
     }
   }
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
   sku              = "Premium" # Premium SKU is required for cache rules.
 }
 

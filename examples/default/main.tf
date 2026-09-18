@@ -38,5 +38,5 @@ module "containerregistry" {
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  enable_telemetry    = false
+  enable_telemetry    = var.enable_telemetry
 }
