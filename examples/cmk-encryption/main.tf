@@ -129,7 +129,7 @@ module "containerregistry" {
       resource_id = azurerm_user_assigned_identity.this.id
     }
   }
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
   managed_identities = {
     system_assigned            = true
     user_assigned_resource_ids = toset([azurerm_user_assigned_identity.this.id])
