@@ -44,6 +44,21 @@ Optional ARM resource ID of a credential set (`Microsoft.ContainerRegistry/regis
 DESCRIPTION
 }
 
+variable "ignore_body_changes" {
+  type = object({
+    this = optional(list(string), [])
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Body paths to ignore for each `azapi_resource` this submodule manages, in dot notation. Use this to suppress plan diffs for properties mutated outside Terraform.
+
+- `this` - Paths to ignore on the `Microsoft.ContainerRegistry/registries/cacheRules` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "resource_types" {
   type = object({
     this = optional(string, "Microsoft.ContainerRegistry/registries/cacheRules@2025-11-01")
