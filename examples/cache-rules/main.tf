@@ -93,18 +93,6 @@ module "containerregistry" {
   # source             = "Azure/avm-res-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  credential_sets = {
-    dockerhub = {
-      name         = "dockerhub-credentials"
-      login_server = "docker.io"
-      auth_credentials = [
-        {
-          username_secret_identifier = azurerm_key_vault_secret.docker_username.versionless_id
-          password_secret_identifier = azurerm_key_vault_secret.docker_password.versionless_id
-        }
-      ]
-    }
-  }
   cache_rules = {
     # Both Docker Hub rules share the same registry-level credential set.
     dockerhub_nginx = {
@@ -127,7 +115,20 @@ module "containerregistry" {
       target_repository = "hello-world"
     }
   }
-  sku = "Premium" # Premium SKU is required for cache rules.
+  credential_sets = {
+    dockerhub = {
+      name         = "dockerhub-credentials"
+      login_server = "docker.io"
+      auth_credentials = [
+        {
+          username_secret_identifier = azurerm_key_vault_secret.docker_username.versionless_id
+          password_secret_identifier = azurerm_key_vault_secret.docker_password.versionless_id
+        }
+      ]
+    }
+  }
+  enable_telemetry = var.enable_telemetry
+  sku              = "Premium" # Premium SKU is required for cache rules.
 }
 
 # The credential set's system-assigned identity must be able to read the Key Vault

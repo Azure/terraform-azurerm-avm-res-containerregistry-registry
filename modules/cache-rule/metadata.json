@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Container Registry Cache Rule",
+  "moduleDescription": "Deploys a Container Registry cache rule that maps an upstream source repository to a target repository for locally cached pulls.",
+  "canonicalType": "Microsoft.ContainerRegistry/registries/cacheRules",
+  "telemetryIdPrefix": "46d3xtrf.res.1ae8a8e"
+}

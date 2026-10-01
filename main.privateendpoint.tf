@@ -22,7 +22,7 @@ resource "azurerm_private_endpoint" "this" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = coalesce(each.value.subresource_name, "registry")
+      member_name        = "registry"
       subresource_name   = coalesce(each.value.subresource_name, "registry")
     }
   }
@@ -61,7 +61,7 @@ resource "azurerm_private_endpoint" "this_unmanaged_dns_zone_groups" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = coalesce(each.value.subresource_name, "registry")
+      member_name        = "registry"
       subresource_name   = coalesce(each.value.subresource_name, "registry")
     }
   }

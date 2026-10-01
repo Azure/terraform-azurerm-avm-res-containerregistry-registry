@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Container Registry Credential Set",
+  "moduleDescription": "Deploys a Container Registry credential set that references Key Vault secrets for upstream registry authentication, with a system-assigned managed identity.",
+  "canonicalType": "Microsoft.ContainerRegistry/registries/credentialSets",
+  "telemetryIdPrefix": "46d3xtrf.res.a1e3088"
+}
