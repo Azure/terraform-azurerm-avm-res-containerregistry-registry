@@ -122,7 +122,7 @@ Default: `false`
 
 ### <a name="input_cache_rules"></a> [cache\_rules](#input\_cache\_rules)
 
-Description: A map of Container Registry cache rules. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time. Cache rules require the **Premium** SKU.
+Description: A map of Container Registry cache rules. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time. Cache rules are supported on the `Basic`, `Standard`, and `Premium` SKUs.
 
 Each object supports the following:
 

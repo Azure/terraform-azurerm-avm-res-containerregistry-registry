@@ -207,30 +207,13 @@ run "credential_set_key_must_exist" {
   expect_failures = [azurerm_container_registry.this]
 }
 
-run "cache_rules_require_premium_sku" {
-  command   = plan
-  state_key = "cache-rules-require-premium-sku"
+run "cache_rules_and_credential_sets_supported_on_basic_sku" {
+  command   = apply
+  state_key = "cache-rules-and-credential-sets-supported-on-basic-sku"
 
   variables {
-    sku = "Basic"
-    cache_rules = {
-      mcr_hello_world = {
-        name              = "mcr-hello-world"
-        source_repository = "mcr.microsoft.com/mcr/hello-world"
-        target_repository = "hello-world"
-      }
-    }
-  }
-
-  expect_failures = [azurerm_container_registry.this]
-}
-
-run "credential_sets_require_premium_sku" {
-  command   = plan
-  state_key = "credential-sets-require-premium-sku"
-
-  variables {
-    sku = "Basic"
+    sku                     = "Basic"
+    zone_redundancy_enabled = false
     credential_sets = {
       dockerhub = {
         name         = "dockerhub-credentials"
@@ -241,7 +224,66 @@ run "credential_sets_require_premium_sku" {
         }]
       }
     }
+    cache_rules = {
+      dockerhub_nginx = {
+        name               = "dockerhub-nginx"
+        source_repository  = "docker.io/library/nginx"
+        target_repository  = "nginx"
+        credential_set_key = "dockerhub"
+      }
+      mcr_hello_world = {
+        name              = "mcr-hello-world"
+        source_repository = "mcr.microsoft.com/mcr/hello-world"
+        target_repository = "hello-world"
+      }
+    }
   }
 
-  expect_failures = [azurerm_container_registry.this]
+  assert {
+    condition     = length(module.cache_rule) == 2
+    error_message = "Cache rules should be created on a Basic SKU registry."
+  }
+
+  assert {
+    condition     = length(module.credential_set) == 1
+    error_message = "Credential sets should be created on a Basic SKU registry."
+  }
+}
+
+run "cache_rules_and_credential_sets_supported_on_standard_sku" {
+  command   = apply
+  state_key = "cache-rules-and-credential-sets-supported-on-standard-sku"
+
+  variables {
+    sku                     = "Standard"
+    zone_redundancy_enabled = false
+    credential_sets = {
+      dockerhub = {
+        name         = "dockerhub-credentials"
+        login_server = "docker.io"
+        auth_credentials = [{
+          username_secret_identifier = "https://kv-test.vault.azure.net/secrets/username"
+          password_secret_identifier = "https://kv-test.vault.azure.net/secrets/password"
+        }]
+      }
+    }
+    cache_rules = {
+      dockerhub_nginx = {
+        name               = "dockerhub-nginx"
+        source_repository  = "docker.io/library/nginx"
+        target_repository  = "nginx"
+        credential_set_key = "dockerhub"
+      }
+    }
+  }
+
+  assert {
+    condition     = length(module.cache_rule) == 1
+    error_message = "Cache rules should be created on a Standard SKU registry."
+  }
+
+  assert {
+    condition     = length(module.credential_set) == 1
+    error_message = "Credential sets should be created on a Standard SKU registry."
+  }
 }
