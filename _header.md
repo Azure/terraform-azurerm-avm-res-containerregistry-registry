@@ -40,3 +40,9 @@ Both authorization modes remain supported. When switching an existing registry t
 2. Set `role_assignment_mode = "AbacRepositoryPermissions"` and apply.
 3. Validate repository access.
 4. Optionally remove the obsolete legacy role assignments.
+
+## Azure Policy and ARM audience tokens
+
+Azure Policy can disable ARM audience token authentication on a registry after Terraform applies. For example, the Azure Landing Zones `Enforce-Guardrails-ContainerRegistry` initiative includes a `Modify` policy for this setting. When that happens, every plan shows `azuread_authentication_as_arm_policy_enabled = false -> true`.
+
+Set `azuread_authentication_as_arm_policy_enabled = false` so the module configuration matches the policy. Before you disable it, confirm that every client can pull with a registry-scoped token. For more information, see [Configure registry acceptance of Microsoft Entra authentication scopes](https://learn.microsoft.com/azure/container-registry/container-registry-disable-authentication-as-arm).
