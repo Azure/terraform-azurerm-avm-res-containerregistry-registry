@@ -9,7 +9,7 @@ resource "azapi_resource" "this" {
       credentialSetResourceId = var.credential_set_resource_id
     }
   }
-  ignore_body_changes = length(var.ignore_body_changes.this) > 0 ? var.ignore_body_changes.this : null
+  ignore_body_changes = length(var.ignore_body_changes.containerregistry_registries_cache_rules) > 0 ? var.ignore_body_changes.containerregistry_registries_cache_rules : null
   # Source and target repository define the cache mapping identity; changing
   # either re-targets the rule and requires replacement.
   replace_triggers_refs = [

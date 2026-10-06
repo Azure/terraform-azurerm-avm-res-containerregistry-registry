@@ -65,19 +65,21 @@ DESCRIPTION
 
 variable "ignore_body_changes" {
   type = object({
-    cache_rule = optional(object({
-      this = optional(list(string), [])
+    containerregistry_registries_cache_rules = optional(object({
+      containerregistry_registries_cache_rules = optional(list(string), [])
     }), {})
-    credential_set = optional(object({
-      this = optional(list(string), [])
+    containerregistry_registries_credential_sets = optional(object({
+      containerregistry_registries_credential_sets = optional(list(string), [])
     }), {})
   })
   default     = {}
   description = <<DESCRIPTION
-Body paths to ignore on the cache rule and credential set child resources, in dot notation. Use this to suppress plan diffs for properties mutated outside Terraform, such as those set by Azure Policy.
+Body-relative paths to ignore on the cache rule and credential set child resources, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Non-empty lists require Terraform 1.11 or later. Empty lists are converted to null; see the README for the current AzAPI 2.12.0 validation limitation before Terraform 1.11.
 
-- `cache_rule.this` - Paths to ignore on each `Microsoft.ContainerRegistry/registries/cacheRules` resource.
-- `credential_set.this` - Paths to ignore on each `Microsoft.ContainerRegistry/registries/credentialSets` resource.
+- `containerregistry_registries_cache_rules` - Overrides passed to every cache-rule child module.
+  - `containerregistry_registries_cache_rules` - Paths ignored on each `Microsoft.ContainerRegistry/registries/cacheRules` resource.
+- `containerregistry_registries_credential_sets` - Overrides passed to every credential-set child module.
+  - `containerregistry_registries_credential_sets` - Paths ignored on each `Microsoft.ContainerRegistry/registries/credentialSets` resource.
 
 Because the value is held in provider private state, a change only takes effect after an apply. Adding a path still shows the pending diff in the same plan, and removing one does not resurface the suppressed diff until the next plan.
 DESCRIPTION
