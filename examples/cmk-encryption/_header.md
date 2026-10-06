@@ -13,7 +13,9 @@ customer_managed_key = {
 }
 ```
 
-Both values are unknown until apply, so Terraform orders the registry after the key and the identity. Passing a hard-coded key name instead would leave the registry with no reason to wait for the key.
+The resource references establish dependency edges, so Terraform orders the registry after the key and the identity regardless of whether the URI is already known during planning. A literal URI alone does not establish a dependency on a newly created key.
+
+This example creates a new vault as well as a key. It is not the original existing-vault plus new-key regression scenario.
 
 The URI is versionless, so the registry follows key rotations automatically. Append a version segment to pin to a specific key version.
 

@@ -15,7 +15,9 @@ customer_managed_key = {
 }
 ```
 
-Both values are unknown until apply, so Terraform orders the registry after the key and the identity. Passing a hard-coded key name instead would leave the registry with no reason to wait for the key.
+The resource references establish dependency edges, so Terraform orders the registry after the key and the identity regardless of whether the URI is already known during planning. A literal URI alone does not establish a dependency on a newly created key.
+
+This example creates a new vault as well as a key. It is not the original existing-vault plus new-key regression scenario.
 
 The URI is versionless, so the registry follows key rotations automatically. Append a version segment to pin to a specific key version.
 
@@ -147,8 +149,8 @@ module "containerregistry" {
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
   customer_managed_key = {
-    # Built from the key resource, so the value is unknown at plan time and Terraform
-    # orders the registry after the key. Versionless, so the registry follows rotations.
+    # The resource reference orders the registry after the key, regardless of
+    # whether the URI is known during planning. Versionless to follow rotations.
     key_vault_key_uri = azurerm_key_vault_key.key.versionless_id
     user_assigned_identity = {
       client_id = azurerm_user_assigned_identity.this.client_id
