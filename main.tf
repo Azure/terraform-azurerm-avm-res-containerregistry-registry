@@ -79,7 +79,7 @@ resource "azurerm_container_registry" "this" {
       error_message = "The Premium SKU is required if a customer managed key is defined."
     }
     precondition {
-      condition     = var.customer_managed_key == null || var.customer_managed_key.user_assigned_identity != null
+      condition     = var.customer_managed_key == null ? true : var.customer_managed_key.user_assigned_identity != null
       error_message = "`customer_managed_key.user_assigned_identity` must be supplied because the Container Registry API identifies the encryption identity by client ID."
     }
     precondition {

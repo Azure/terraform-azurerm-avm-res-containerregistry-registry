@@ -30,13 +30,13 @@ variable "customer_managed_key" {
   default     = null
   description = <<DESCRIPTION
 Controls the Customer managed key configuration on this resource. The following properties can be specified:
-- `key_vault_key_uri` - (Required) The full key identifier of the Customer Managed Key Vault Key, for example `https://<vault-name>.vault.azure.net/keys/<key-name>`. Omit the trailing version segment to let the Container Registry follow key rotations automatically. Because the host is supplied in full, the same input works in sovereign clouds and against Managed HSM.
-- `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key.
-  - `client_id` - (Required) The Client ID of the User Assigned Identity that has access to the key.
+- `key_vault_key_uri` - (Required) The full key identifier, for example `https://<vault-name>.vault.azure.net/keys/<key-name>`. Omit the trailing version segment to follow key rotations automatically, or include it to pin a version. The URI is passed through unchanged; accepting a host does not verify service support in that cloud or for Managed HSM.
+- `user_assigned_identity` - Required when configuring encryption on Container Registry, although optional in the shared interface.
+  - `client_id` - (Required, non-null) The client ID of the User Assigned Identity that has access to the key.
 
-Build `key_vault_key_uri` and `client_id` from the resources you own, rather than from data sources, so the values stay known at plan time and Terraform orders the Container Registry after the key and the identity.
+When creating the key or identity in the same configuration, pass references to those resources. Terraform uses the references to order the registry after them, even if a referenced value is already known during planning. Caller-owned data sources are appropriate for resources that already exist.
 
-The same identity must also be assigned to the Container Registry through `managed_identities.user_assigned_resource_ids`.
+The same identity must also be assigned through `managed_identities.user_assigned_resource_ids`, which takes ARM resource IDs, not client IDs. The module checks that at least one user-assigned identity is attached; the caller must ensure the supplied client ID belongs to an attached identity.
 DESCRIPTION
 
   validation {
@@ -44,8 +44,8 @@ DESCRIPTION
     error_message = "`customer_managed_key.key_vault_key_uri` must be a Key Vault or Managed HSM key URI, in the form `https://{vaultHost}/keys/{keyName}` or `https://{vaultHost}/keys/{keyName}/{keyVersion}`."
   }
   validation {
-    condition     = var.customer_managed_key == null || var.customer_managed_key.user_assigned_identity == null || can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.customer_managed_key.user_assigned_identity.client_id))
-    error_message = "`customer_managed_key.user_assigned_identity.client_id` must be a valid GUID."
+    condition     = try(var.customer_managed_key.user_assigned_identity, null) == null ? true : can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.customer_managed_key.user_assigned_identity.client_id))
+    error_message = "`customer_managed_key.user_assigned_identity.client_id` must be a non-null valid GUID."
   }
 }
 

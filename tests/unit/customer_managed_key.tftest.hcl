@@ -109,12 +109,54 @@ run "invalid_key_uri_is_rejected" {
       user_assigned_identity = {
         client_id = "11111111-1111-1111-1111-111111111111"
       }
+
     }
     managed_identities = {
       user_assigned_resource_ids = ["/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uami-test"]
     }
   }
 
+  expect_failures = [var.customer_managed_key]
+}
+
+run "explicit_null_customer_managed_key" {
+  command = apply
+  variables {
+    customer_managed_key = null
+  }
+  assert {
+    condition     = length(azurerm_container_registry.this.encryption) == 0
+    error_message = "Explicit null CMK must not create encryption or access null attributes."
+  }
+}
+
+run "null_identity_is_rejected" {
+  command = plan
+  variables {
+    customer_managed_key = {
+      key_vault_key_uri      = "https://kv-test.vault.azure.net/keys/cmk"
+      user_assigned_identity = null
+    }
+    managed_identities = {
+      user_assigned_resource_ids = ["/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uami-test"]
+    }
+  }
+  expect_failures = [azurerm_container_registry.this]
+}
+
+run "null_client_id_is_rejected" {
+  command = plan
+  variables {
+    customer_managed_key = {
+      key_vault_key_uri = "https://kv-test.vault.azure.net/keys/cmk"
+      user_assigned_identity = {
+        client_id = null
+      }
+    }
+    managed_identities = {
+      user_assigned_resource_ids = ["/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uami-test"]
+    }
+  }
   expect_failures = [var.customer_managed_key]
 }
 
