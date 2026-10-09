@@ -123,10 +123,11 @@ module "containerregistry" {
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
   customer_managed_key = {
-    key_vault_resource_id = azurerm_key_vault.this.id
-    key_name              = azurerm_key_vault_key.key.name
+    # The resource reference orders the registry after the key, regardless of
+    # whether the URI is known during planning. Versionless to follow rotations.
+    key_vault_key_uri = azurerm_key_vault_key.key.versionless_id
     user_assigned_identity = {
-      resource_id = azurerm_user_assigned_identity.this.id
+      client_id = azurerm_user_assigned_identity.this.client_id
     }
   }
   enable_telemetry = var.enable_telemetry

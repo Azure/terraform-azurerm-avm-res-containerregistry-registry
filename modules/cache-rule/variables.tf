@@ -44,6 +44,21 @@ Optional ARM resource ID of a credential set (`Microsoft.ContainerRegistry/regis
 DESCRIPTION
 }
 
+variable "ignore_body_changes" {
+  type = object({
+    containerregistry_registries_cache_rules = optional(list(string), [])
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Body-relative paths to ignore, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Non-empty lists require Terraform 1.11 or later. Empty lists are converted to null, but AzAPI 2.12.0 rejects unknown values during validation before Terraform 1.11.
+
+- `containerregistry_registries_cache_rules` - Paths to ignore on the `Microsoft.ContainerRegistry/registries/cacheRules` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "resource_types" {
   type = object({
     this = optional(string, "Microsoft.ContainerRegistry/registries/cacheRules@2025-11-01")

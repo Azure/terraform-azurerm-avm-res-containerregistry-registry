@@ -9,6 +9,82 @@ As a starting point, the azurerm\_container\_registry resource has been implemen
 > [!WARNING]
 > Major version Zero (0.y.z) is for initial development. Anything MAY change at any time. A module SHOULD NOT be considered stable till at least it is major version one (1.0.0) or greater. Changes will always be via new versions being published and no changes will be made to existing published versions. For more details please go to <https://semver.org/>
 
+## Migrating customer-managed encryption to direct inputs
+
+The module now takes the key URI and encryption identity's client ID directly. It no longer reads either resource through internal data sources.
+
+| Previous `customer_managed_key` field | Replacement |
+| --- | --- |
+| `key_vault_resource_id` + `key_name` + optional `key_version` | `key_vault_key_uri` |
+| `user_assigned_identity.resource_id` | `user_assigned_identity.client_id` |
+
+Before, a caller creating a new key in an existing vault could supply the already-known vault ARM ID and a literal key name. The module's key data source had no dependency on the new key resource and could try to read it before it existed.
+
+Before (versionless key):
+
+```hcl
+customer_managed_key = {
+  key_vault_resource_id = azurerm_key_vault.shared.id
+  key_name             = "registry-key"
+  user_assigned_identity = {
+    resource_id = azurerm_user_assigned_identity.acr.id
+  }
+}
+```
+
+After:
+
+```hcl
+customer_managed_key = {
+  key_vault_key_uri = azurerm_key_vault_key.acr.versionless_id
+  user_assigned_identity = {
+    client_id = azurerm_user_assigned_identity.acr.client_id
+  }
+}
+managed_identities = {
+  user_assigned_resource_ids = [azurerm_user_assigned_identity.acr.id]
+}
+```
+
+These are inputs supplied by the caller to the registry module. The references to the caller's key and identity resources establish dependency edges: Terraform orders the registry after them even when a referenced value is already known during planning. Do not replace a new key's resource reference with a literal URI merely because the strings match.
+
+`managed_identities.user_assigned_resource_ids` still takes **ARM resource IDs** and attaches identities to the registry. `customer_managed_key.user_assigned_identity.client_id` selects the encryption identity from those attached identities. The module retains a check that at least one user-assigned identity is attached, but cannot prove that a client ID belongs to one of the supplied ARM IDs without a lookup. The caller must supply a matching identity with permission to use the key.
+
+For keys and identities that already exist, caller-owned data sources or outputs from their owning configuration are appropriate. For example, pass an existing key data source's `versionless_id` and an identity data source's `client_id`, while continuing to attach the identity's `id`.
+
+Preserve the existing rotation choice during upgrade:
+
+- If `key_version` was omitted or null, use the same key's versionless URI, such as `https://example.vault.azure.net/keys/registry-key`.
+- If `key_version` was set, supply the same URI including that exact version. Use a key resource's `id` only when it refers to the intended version.
+
+The module passes the URI host through unchanged. A mocked test accepting a Managed HSM or sovereign-cloud host is not evidence that encryption was deployed successfully with that service.
+
+Review the upgrade plan before applying. This interface change keeps resource addresses, but that alone does not guarantee that every existing configuration upgrades without changes or replacements.
+
+## AzAPI provider and ignored body paths
+
+The root and AzAPI child modules require `Azure/azapi ~> 2.12` (`>= 2.12, < 3.0`). All consumers must resolve a compatible provider, even if they do not use cache rules or encryption.
+
+- An existing constraint such as `~> 2.4` **overlaps** `~> 2.12`; it does not need changing.
+- If the lock file selects an older provider, run `terraform init -upgrade` and review the lock-file changes.
+- If a caller explicitly constrains AzAPI to a range excluding 2.12, update that constraint before initialization can succeed.
+
+The new `ignore_body_changes` input uses ARM-derived resource keys. For example, the root module passes `ignore_body_changes.containerregistry_registries_credential_sets` unchanged to each credential-set child. That child's own `containerregistry_registries_credential_sets` list identifies paths in its resource body:
+
+```hcl
+ignore_body_changes = {
+  containerregistry_registries_credential_sets = {
+    containerregistry_registries_credential_sets = ["properties.authCredentials"]
+  }
+}
+```
+
+Use non-empty, body-relative dot paths, not individual list indices. Ignored configuration is not sent to Azure until the path is removed. The provider stores these settings privately, and changes take effect only after apply. Adding a path can still show its old diff in that plan; removing one can leave the diff suppressed until the following plan.
+
+Populated lists require Terraform 1.11 or later. Empty lists are converted to `null`.
+
+**Known compatibility blocker:** On Terraform versions earlier than 1.11, validation can fail with `WriteOnly Attribute Not Allowed`, even when every list is empty. During validation, the empty-to-null expression can be unknown rather than null, and the provider framework rejects unknown write-only values on those Terraform versions. This is tracked in [Azure/terraform-provider-azapi#1240](https://github.com/Azure/terraform-provider-azapi/issues/1240) and [hashicorp/terraform-plugin-framework#1328](https://github.com/hashicorp/terraform-plugin-framework/issues/1328).
+
 ## Migrating from the `resource` output
 
 The full `resource` output has been removed because the provider resource object contains sensitive attributes and its schema can change between provider versions. Use the discrete outputs instead:
@@ -73,8 +149,6 @@ The following resources are used by this module:
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
-- [azurerm_key_vault_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_key) (data source)
-- [azurerm_user_assigned_identity.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/user_assigned_identity) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -181,21 +255,21 @@ Default: `{}`
 ### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
 
 Description: Controls the Customer managed key configuration on this resource. The following properties can be specified:
-- `key_vault_resource_id` - (Required) Resource ID of the Key Vault that the customer managed key belongs to.
-- `key_name` - (Required) Specifies the name of the Customer Managed Key Vault Key.
-- `key_version` - (Optional) The version of the Customer Managed Key Vault Key.
-- `user_assigned_identity` - (Optional) The User Assigned Identity that has access to the key.
-  - `resource_id` - (Required) The resource ID of the User Assigned Identity that has access to the key.
+- `key_vault_key_uri` - (Required) The full key identifier, for example `https://<vault-name>.vault.azure.net/keys/<key-name>`. Omit the trailing version segment to follow key rotations automatically, or include it to pin a version. The URI is passed through unchanged; accepting a host does not verify service support in that cloud or for Managed HSM.
+- `user_assigned_identity` - Required when configuring encryption on Container Registry, although optional in the shared interface.
+  - `client_id` - (Required, non-null) The client ID of the User Assigned Identity that has access to the key.
+
+When creating the key or identity in the same configuration, pass references to those resources. Terraform uses the references to order the registry after them, even if a referenced value is already known during planning. Caller-owned data sources are appropriate for resources that already exist.
+
+The same identity must also be assigned through `managed_identities.user_assigned_resource_ids`, which takes ARM resource IDs, not client IDs. The module checks that at least one user-assigned identity is attached; the caller must ensure the supplied client ID belongs to an attached identity.
 
 Type:
 
 ```hcl
 object({
-    key_vault_resource_id = string
-    key_name              = string
-    key_version           = optional(string, null)
+    key_vault_key_uri = string
     user_assigned_identity = optional(object({
-      resource_id = string
+      client_id = string
     }), null)
   })
 ```
@@ -291,6 +365,32 @@ list(object({
 ```
 
 Default: `[]`
+
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
+
+Description: Body-relative paths to ignore on the cache rule and credential set child resources, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Non-empty lists require Terraform 1.11 or later. Empty lists are converted to null; see the README for the current AzAPI 2.12.0 validation limitation before Terraform 1.11.
+
+- `containerregistry_registries_cache_rules` - Overrides passed to every cache-rule child module.
+  - `containerregistry_registries_cache_rules` - Paths ignored on each `Microsoft.ContainerRegistry/registries/cacheRules` resource.
+- `containerregistry_registries_credential_sets` - Overrides passed to every credential-set child module.
+  - `containerregistry_registries_credential_sets` - Paths ignored on each `Microsoft.ContainerRegistry/registries/credentialSets` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply. Adding a path still shows the pending diff in the same plan, and removing one does not resurface the suppressed diff until the next plan.
+
+Type:
+
+```hcl
+object({
+    containerregistry_registries_cache_rules = optional(object({
+      containerregistry_registries_cache_rules = optional(list(string), [])
+    }), {})
+    containerregistry_registries_credential_sets = optional(object({
+      containerregistry_registries_credential_sets = optional(list(string), [])
+    }), {})
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
