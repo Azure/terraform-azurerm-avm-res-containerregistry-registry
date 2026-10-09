@@ -43,6 +43,12 @@ Both authorization modes remain supported. When switching an existing registry t
 3. Validate repository access.
 4. Optionally remove the obsolete legacy role assignments.
 
+## Azure Policy and ARM audience tokens
+
+Azure Policy can disable ARM audience token authentication on a registry after Terraform applies. For example, the Azure Landing Zones `Enforce-Guardrails-ContainerRegistry` initiative includes a `Modify` policy for this setting. When that happens, every plan shows `azuread_authentication_as_arm_policy_enabled = false -> true`.
+
+Set `azuread_authentication_as_arm_policy_enabled = false` so the module configuration matches the policy. Before you disable it, confirm that every client can pull with a registry-scoped token. For more information, see [Configure registry acceptance of Microsoft Entra authentication scopes](https://learn.microsoft.com/azure/container-registry/container-registry-disable-authentication-as-arm).
+
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
@@ -119,6 +125,18 @@ Description: Specifies whether anonymous (unauthenticated) pull access to this C
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_azuread_authentication_as_arm_policy_enabled"></a> [azuread\_authentication\_as\_arm\_policy\_enabled](#input\_azuread\_authentication\_as\_arm\_policy\_enabled)
+
+Description: Specifies whether the registry accepts Microsoft Entra tokens issued for the Azure Resource Manager (ARM) audience. Defaults to `true`, which accepts both ARM-scoped and registry-scoped tokens.
+
+Set to `false` to accept only registry-scoped tokens. Some services that pull images with ARM-scoped tokens, such as App Service web apps, fail when this is `false`.
+
+Set this to `false` when Azure Policy enforces it, such as the Azure Landing Zones `Enforce-Guardrails-ContainerRegistry` initiative. Otherwise, the policy changes the value after every apply and Terraform reports drift.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_cache_rules"></a> [cache\_rules](#input\_cache\_rules)
 
