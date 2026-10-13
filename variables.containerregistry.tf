@@ -10,6 +10,19 @@ variable "anonymous_pull_enabled" {
   description = "Specifies whether anonymous (unauthenticated) pull access to this Container Registry is allowed.  Requires Standard or Premium SKU."
 }
 
+variable "azuread_authentication_as_arm_policy_enabled" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+Specifies whether the registry accepts Microsoft Entra tokens issued for the Azure Resource Manager (ARM) audience. Defaults to `true`, which accepts both ARM-scoped and registry-scoped tokens.
+
+Set to `false` to accept only registry-scoped tokens. Some services that pull images with ARM-scoped tokens, such as App Service web apps, fail when this is `false`.
+
+Set this to `false` when Azure Policy enforces it, such as the Azure Landing Zones `Enforce-Guardrails-ContainerRegistry` initiative. Otherwise, the policy changes the value after every apply and Terraform reports drift.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "data_endpoint_enabled" {
   type        = bool
   default     = false

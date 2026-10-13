@@ -1,11 +1,12 @@
 resource "azurerm_container_registry" "this" {
-  location               = var.location
-  name                   = var.name
-  resource_group_name    = var.resource_group_name
-  sku                    = var.sku
-  admin_enabled          = var.admin_enabled
-  anonymous_pull_enabled = var.anonymous_pull_enabled
-  data_endpoint_enabled  = var.data_endpoint_enabled
+  location                                     = var.location
+  name                                         = var.name
+  resource_group_name                          = var.resource_group_name
+  sku                                          = var.sku
+  admin_enabled                                = var.admin_enabled
+  anonymous_pull_enabled                       = var.anonymous_pull_enabled
+  azuread_authentication_as_arm_policy_enabled = var.azuread_authentication_as_arm_policy_enabled
+  data_endpoint_enabled                        = var.data_endpoint_enabled
 
   dynamic "encryption" {
     for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}

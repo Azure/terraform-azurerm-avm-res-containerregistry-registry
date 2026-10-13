@@ -38,7 +38,9 @@ module "containerregistry" {
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  enable_telemetry    = var.enable_telemetry
+  # Accept only registry-scoped Microsoft Entra tokens, as Azure Landing Zones guardrails enforce.
+  azuread_authentication_as_arm_policy_enabled = false
+  enable_telemetry                             = var.enable_telemetry
   # Enable attribute-based access control (ABAC) so that access can be scoped per repository.
   role_assignment_mode = "AbacRepositoryPermissions"
 }
