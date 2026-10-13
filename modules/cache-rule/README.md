@@ -64,6 +64,24 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
+
+Description: Body-relative paths to ignore, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Non-empty lists require Terraform 1.11 or later. Empty lists are converted to null, but AzAPI 2.12.0 rejects unknown values during validation before Terraform 1.11.
+
+- `containerregistry_registries_cache_rules` - Paths to ignore on the `Microsoft.ContainerRegistry/registries/cacheRules` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply.
+
+Type:
+
+```hcl
+object({
+    containerregistry_registries_cache_rules = optional(list(string), [])
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_resource_types"></a> [resource\_types](#input\_resource\_types)
 
 Description: A map controlling the AzAPI resource type (and API version) used for each `azapi_resource` this submodule manages.

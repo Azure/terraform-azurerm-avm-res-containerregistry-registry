@@ -51,6 +51,21 @@ DESCRIPTION
   }
 }
 
+variable "ignore_body_changes" {
+  type = object({
+    containerregistry_registries_credential_sets = optional(list(string), [])
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Body-relative paths to ignore, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Non-empty lists require Terraform 1.11 or later. Empty lists are converted to null, but AzAPI 2.12.0 rejects unknown values during validation before Terraform 1.11.
+
+- `containerregistry_registries_credential_sets` - Paths to ignore on the `Microsoft.ContainerRegistry/registries/credentialSets` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "resource_types" {
   type = object({
     this = optional(string, "Microsoft.ContainerRegistry/registries/credentialSets@2025-11-01")
