@@ -21,6 +21,12 @@ DESCRIPTION
   }
 }
 
+variable "location" {
+  type        = string
+  description = "The Azure region for this module's resources or telemetry deployment."
+  nullable    = false
+}
+
 variable "login_server" {
   type        = string
   description = "The login server of the upstream registry the credentials authenticate to (e.g. `docker.io` for Docker Hub). Changing this value replaces the credential set, creates a new `principal_id`, and requires the caller to update any Key Vault role assignment for that identity."
@@ -49,6 +55,17 @@ DESCRIPTION
     condition     = can(provider::azapi::parse_resource_id("Microsoft.ContainerRegistry/registries", var.parent_id))
     error_message = "`parent_id` must be a valid `Microsoft.ContainerRegistry/registries` resource ID."
   }
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
 }
 
 variable "resource_types" {
