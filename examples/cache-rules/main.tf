@@ -28,8 +28,8 @@ provider "azurerm" {
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.0"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 # This is required for resource modules
@@ -128,7 +128,10 @@ module "containerregistry" {
     }
   }
   enable_telemetry = var.enable_telemetry
-  sku              = "Premium" # Premium SKU is required for cache rules.
+  # Cache rules and credential sets work on every SKU; Basic keeps the example low cost.
+  sku = "Basic"
+  # Zone redundancy requires the Premium SKU, so override the module default.
+  zone_redundancy_enabled = false
 }
 
 # The credential set's system-assigned identity must be able to read the Key Vault

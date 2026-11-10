@@ -7,5 +7,7 @@ module "scope_maps" {
   description             = each.value.description
   name                    = each.value.name
   resource_group_name     = azurerm_container_registry.this.resource_group_name
+  enable_telemetry        = var.enable_telemetry
+  location                = var.location
   registry_tokens         = each.value.registry_tokens
 }

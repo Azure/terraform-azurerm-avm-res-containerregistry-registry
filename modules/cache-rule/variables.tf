@@ -44,19 +44,41 @@ Optional ARM resource ID of a credential set (`Microsoft.ContainerRegistry/regis
 DESCRIPTION
 }
 
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "ignore_body_changes" {
   type = object({
     containerregistry_registries_cache_rules = optional(list(string), [])
   })
   default     = {}
   description = <<DESCRIPTION
-Body-relative paths to ignore, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Non-empty lists require Terraform 1.11 or later. Empty lists are converted to null, but AzAPI 2.12.0 rejects unknown values during validation before Terraform 1.11.
+Body-relative paths to ignore, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Empty lists are converted to null.
 
 - `containerregistry_registries_cache_rules` - Paths to ignore on the `Microsoft.ContainerRegistry/registries/cacheRules` resource.
 
 Because the value is held in provider private state, a change only takes effect after an apply.
 DESCRIPTION
   nullable    = false
+}
+
+variable "location" {
+  type        = string
+  default     = null
+  description = "The Azure region for this module's resources or telemetry deployment."
+
+  validation {
+    condition     = !var.enable_telemetry || var.location != null
+    error_message = "The location must not be null when telemetry is enabled."
+  }
 }
 
 variable "resource_types" {

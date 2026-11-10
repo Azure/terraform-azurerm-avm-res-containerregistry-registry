@@ -1,11 +1,12 @@
 resource "azurerm_container_registry" "this" {
-  location               = var.location
-  name                   = var.name
-  resource_group_name    = var.resource_group_name
-  sku                    = var.sku
-  admin_enabled          = var.admin_enabled
-  anonymous_pull_enabled = var.anonymous_pull_enabled
-  data_endpoint_enabled  = var.data_endpoint_enabled
+  location                                     = var.location
+  name                                         = var.name
+  resource_group_name                          = var.resource_group_name
+  sku                                          = var.sku
+  admin_enabled                                = var.admin_enabled
+  anonymous_pull_enabled                       = var.anonymous_pull_enabled
+  azuread_authentication_as_arm_policy_enabled = var.azuread_authentication_as_arm_policy_enabled
+  data_endpoint_enabled                        = var.data_endpoint_enabled
 
   dynamic "encryption" {
     for_each = var.customer_managed_key != null ? { this = var.customer_managed_key } : {}
@@ -85,10 +86,6 @@ resource "azurerm_container_registry" "this" {
     precondition {
       condition     = var.customer_managed_key == null || length(var.managed_identities.user_assigned_resource_ids) > 0
       error_message = "A user assigned managed identity must be assigned to the container registry via `managed_identities.user_assigned_resource_ids` when a customer managed key is defined."
-    }
-    precondition {
-      condition     = length(var.cache_rules) == 0 && length(var.credential_sets) == 0 || var.sku == "Premium"
-      error_message = "The Premium SKU is required when cache_rules or credential_sets are defined."
     }
     precondition {
       condition = alltrue([

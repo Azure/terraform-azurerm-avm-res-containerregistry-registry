@@ -1,6 +1,8 @@
 # Cache rules
 
-This example deploys a Premium Container Registry with three cache rules:
+This example deploys a Basic Container Registry with three cache rules. Cache rules and credential sets are supported on the `Basic`, `Standard`, and `Premium` SKUs.
+
+The cache rules are:
 
 - **`dockerhub_nginx`** — an authenticated cache rule that mirrors `docker.io/library/nginx` from Docker Hub.
 - **`dockerhub_alpine`** — an authenticated cache rule that mirrors `docker.io/library/alpine` and reuses the same registry-level Docker Hub credential set as the nginx rule. The shared credential set's system-assigned managed identity receives exactly one **Key Vault Secrets User** role assignment.

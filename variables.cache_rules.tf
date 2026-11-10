@@ -8,7 +8,7 @@ variable "cache_rules" {
   }))
   default     = {}
   description = <<DESCRIPTION
-A map of Container Registry cache rules. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time. Cache rules require the **Premium** SKU.
+A map of Container Registry cache rules. The map key is deliberately arbitrary to avoid issues where map keys may be unknown at plan time. Cache rules are supported on the `Basic`, `Standard`, and `Premium` SKUs.
 
 Each object supports the following:
 

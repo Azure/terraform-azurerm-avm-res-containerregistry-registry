@@ -4,6 +4,8 @@
 
 This example sets `role_assignment_mode` to `AbacRepositoryPermissions`.
 
+It also sets `azuread_authentication_as_arm_policy_enabled` to `false`, so the registry accepts only registry-scoped Microsoft Entra tokens. Azure Landing Zones guardrails enforce this setting through Azure Policy.
+
 ```hcl
 terraform {
   required_version = "~> 1.6"
@@ -27,8 +29,8 @@ provider "azurerm" {
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.0"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 # This is required for resource modules
@@ -45,7 +47,9 @@ module "containerregistry" {
   # source             = "Azure/avm-containerregistry-registry/azurerm"
   name                = module.naming.container_registry.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  enable_telemetry    = var.enable_telemetry
+  # Accept only registry-scoped Microsoft Entra tokens, as Azure Landing Zones guardrails enforce.
+  azuread_authentication_as_arm_policy_enabled = false
+  enable_telemetry                             = var.enable_telemetry
   # Enable attribute-based access control (ABAC) so that access can be scoped per repository.
   role_assignment_mode = "AbacRepositoryPermissions"
 }
@@ -101,9 +105,9 @@ Version:
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
-Source: Azure/naming/azurerm
+Source: Azure/avm-utl-naming/azure
 
-Version: 0.4.0
+Version: 0.2.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

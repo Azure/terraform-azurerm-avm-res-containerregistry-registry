@@ -8,7 +8,9 @@ module "credential_set" {
   login_server        = each.value.login_server
   name                = each.value.name
   parent_id           = azurerm_container_registry.this.id
+  enable_telemetry    = var.enable_telemetry
   ignore_body_changes = var.ignore_body_changes.containerregistry_registries_credential_sets
+  location            = var.location
   resource_types      = { this = var.resource_types.credential_set }
   retry               = var.retry
   timeouts            = var.timeouts
@@ -25,7 +27,9 @@ module "cache_rule" {
   # `credential_set_key` is caller-supplied and therefore known at plan time.
   # The referenced resource ID can remain computed without affecting cardinality.
   credential_set_resource_id = each.value.credential_set_key != null ? module.credential_set[each.value.credential_set_key].resource_id : each.value.credential_set_resource_id
+  enable_telemetry           = var.enable_telemetry
   ignore_body_changes        = var.ignore_body_changes.containerregistry_registries_cache_rules
+  location                   = var.location
   resource_types             = { this = var.resource_types.cache_rule }
   retry                      = var.retry
   timeouts                   = var.timeouts
