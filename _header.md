@@ -7,6 +7,14 @@ As a starting point, the azurerm_container_registry resource has been implemente
 > [!WARNING]
 > Major version Zero (0.y.z) is for initial development. Anything MAY change at any time. A module SHOULD NOT be considered stable till at least it is major version one (1.0.0) or greater. Changes will always be via new versions being published and no changes will be made to existing published versions. For more details please go to <https://semver.org/>
 
+## Terraform 1.11 or later required
+
+The root module and every child module now require Terraform `>= 1.11.0, < 2.0.0`. Previously, the root module accepted Terraform 1.8 or later.
+
+AVM requires this baseline for every Terraform module, per [TFNFR25](https://azure.github.io/Azure-Verified-Modules/spec/TFNFR25) and [TFFR8](https://azure.github.io/Azure-Verified-Modules/spec/TFFR8). Terraform 1.11 added write-only arguments, which AzAPI uses for `ignore_body_changes`. On earlier Terraform versions, AzAPI validation can fail with `WriteOnly Attribute Not Allowed`, even when every `ignore_body_changes` list is empty.
+
+If you run Terraform 1.8 through 1.10, upgrade Terraform before upgrading this module.
+
 ## Migrating customer-managed encryption to direct inputs
 
 The module now takes the key URI and encryption identity's client ID directly. It no longer reads either resource through internal data sources.
@@ -77,11 +85,7 @@ ignore_body_changes = {
 }
 ```
 
-Use non-empty, body-relative dot paths, not individual list indices. Ignored configuration is not sent to Azure until the path is removed. The provider stores these settings privately, and changes take effect only after apply. Adding a path can still show its old diff in that plan; removing one can leave the diff suppressed until the following plan.
-
-Populated lists require Terraform 1.11 or later. Empty lists are converted to `null`.
-
-**Known compatibility blocker:** On Terraform versions earlier than 1.11, validation can fail with `WriteOnly Attribute Not Allowed`, even when every list is empty. During validation, the empty-to-null expression can be unknown rather than null, and the provider framework rejects unknown write-only values on those Terraform versions. This is tracked in [Azure/terraform-provider-azapi#1240](https://github.com/Azure/terraform-provider-azapi/issues/1240) and [hashicorp/terraform-plugin-framework#1328](https://github.com/hashicorp/terraform-plugin-framework/issues/1328).
+Use non-empty, body-relative dot paths, not individual list indices. Ignored configuration is not sent to Azure until the path is removed. The provider stores these settings privately, and changes take effect only after apply. Adding a path can still show its old diff in that plan; removing one can leave the diff suppressed until the following plan. Empty lists are converted to `null`.
 
 ## Migrating from the `resource` output
 

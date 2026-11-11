@@ -74,7 +74,7 @@ variable "ignore_body_changes" {
   })
   default     = {}
   description = <<DESCRIPTION
-Body-relative paths to ignore on the cache rule and credential set child resources, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Non-empty lists require Terraform 1.11 or later. Empty lists are converted to null; see the README for the current AzAPI 2.12.0 validation limitation before Terraform 1.11.
+Body-relative paths to ignore on the cache rule and credential set child resources, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Empty lists are converted to null.
 
 - `containerregistry_registries_cache_rules` - Overrides passed to every cache-rule child module.
   - `containerregistry_registries_cache_rules` - Paths ignored on each `Microsoft.ContainerRegistry/registries/cacheRules` resource.
