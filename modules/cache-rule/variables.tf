@@ -55,6 +55,21 @@ DESCRIPTION
   nullable    = false
 }
 
+variable "ignore_body_changes" {
+  type = object({
+    containerregistry_registries_cache_rules = optional(list(string), [])
+  })
+  default     = {}
+  description = <<DESCRIPTION
+Body-relative paths to ignore, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Empty lists are converted to null.
+
+- `containerregistry_registries_cache_rules` - Paths to ignore on the `Microsoft.ContainerRegistry/registries/cacheRules` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "location" {
   type        = string
   default     = null

@@ -8,7 +8,7 @@ This translates into using the `Basic` SKU, which requires zone redundancy to be
 
 ```hcl
 terraform {
-  required_version = "~> 1.6"
+  required_version = "~> 1.11"
 
   required_providers {
     azurerm = {
@@ -60,7 +60,7 @@ module "containerregistry" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.6)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.11)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4, < 5.0.0)
 

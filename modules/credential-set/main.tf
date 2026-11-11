@@ -14,6 +14,7 @@ resource "azapi_resource" "this" {
       ]
     }
   }
+  ignore_body_changes = length(var.ignore_body_changes.containerregistry_registries_credential_sets) > 0 ? var.ignore_body_changes.containerregistry_registries_credential_sets : null
   # loginServer identifies the upstream the credentials belong to; changing it
   # re-targets the credential set and requires replacement.
   replace_triggers_refs = [
