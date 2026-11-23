@@ -15,7 +15,7 @@ The `login_server` input is required because it identifies the upstream registry
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.8)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.11.0, < 2.0.0)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
@@ -84,6 +84,24 @@ If it is set to false, then no telemetry will be collected.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
+
+Description: Body-relative paths to ignore, in dot notation. Ignored configuration is not sent to Azure until the path is removed. Empty lists are converted to null.
+
+- `containerregistry_registries_credential_sets` - Paths to ignore on the `Microsoft.ContainerRegistry/registries/credentialSets` resource.
+
+Because the value is held in provider private state, a change only takes effect after an apply.
+
+Type:
+
+```hcl
+object({
+    containerregistry_registries_credential_sets = optional(list(string), [])
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_location"></a> [location](#input\_location)
 
